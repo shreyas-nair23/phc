@@ -1,44 +1,13 @@
-{
-  "version": 2,
-  "builds": [
-    {
-      "src": "api/index.py",
-      "use": "@vercel/python",
-      "config": { "maxLambdaSize": "50mb" }
-    },
-    {
-      "src": "frontend/dashboard/index.html",
-      "use": "@vercel/static"
-    },
-    {
-      "src": "frontend/worker/index.html",
-      "use": "@vercel/static"
-    }
-  ],
-  "routes": [
-    {
-      "src": "/api/(.*)",
-      "dest": "api/index.py"
-    },
-    {
-      "src": "/docs",
-      "dest": "api/index.py"
-    },
-    {
-      "src": "/redoc",
-      "dest": "api/index.py"
-    },
-    {
-      "src": "/health",
-      "dest": "api/index.py"
-    },
-    {
-      "src": "/worker",
-      "dest": "frontend/worker/index.html"
-    },
-    {
-      "src": "/",
-      "dest": "frontend/dashboard/index.html"
-    }
-  ]
-}
+   {
+     "version": 2,
+     "builds": [
+       {
+         "src": "backend/api/index.py",
+         "use": "@vercel/python",
+         "config": { "includeFiles": ["backend/**", "frontend/**"] }
+       }
+     ],
+     "routes": [
+       { "src": "/(.*)", "dest": "backend/api/index.py" }
+     ]
+   }
