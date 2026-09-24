@@ -1,0 +1,1191 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>PHC Stock Register — Inventory & Tracking App</title>
+  
+  <!-- Tailwind CSS CDN -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          colors: {
+            brand: {
+              main: '#059669', // Emerald 600
+              mainHover: '#047857',
+              light: '#f8fafc', // Light slate body background
+              card: '#ffffff',
+              cardHover: '#f1f5f9',
+              border: '#e2e8f0',
+              accent: '#10b981',
+              darkText: '#0f172a',
+              dimText: '#64748b'
+            }
+          }
+        }
+      }
+    }
+  </script>
+</head>
+<body class="bg-slate-100 text-brand-darkText font-sans min-h-screen flex justify-center items-center p-0 sm:p-4">
+
+  <!-- APP SHELL CONTAINER -->
+  <div class="w-full max-w-lg md:max-w-xl bg-white border border-slate-200 sm:rounded-2xl shadow-xl overflow-hidden flex flex-col min-h-screen sm:min-h-[850px]">
+
+    <!-- STATUS BANNER -->
+    <div class="bg-emerald-600 text-white px-4 py-2.5 flex justify-between items-center font-bold">
+      <div class="flex items-center space-x-2 text-xs sm:text-sm">
+        <span class="w-2.5 h-2.5 bg-white rounded-full animate-pulse"></span>
+        <span id="txt-status-banner">Everything has reached the centre</span>
+      </div>
+      <span id="txt-signal-badge" class="bg-emerald-800/40 text-emerald-100 text-[11px] px-2.5 py-0.5 rounded-md font-bold">
+        No signal
+      </span>
+    </div>
+
+    <!-- VIEW TOGGLE (SUB-CENTRE vs DISTRICT VIEW) -->
+    <div class="p-4 pb-2 bg-slate-50 border-b border-slate-200">
+      <div class="bg-slate-200 p-1 rounded-xl flex text-sm font-semibold">
+        <button id="btn-subcentre" onclick="switchMainView('subcentre')" class="flex-1 py-2 rounded-lg bg-white text-emerald-700 font-bold shadow-sm text-center transition">
+          <span id="txt-btn-subcentre">Sub-centre / PHC</span>
+        </button>
+        <button id="btn-district" onclick="switchMainView('district')" class="flex-1 py-2 rounded-lg text-slate-600 hover:text-slate-900 text-center transition">
+          <span id="txt-btn-district">District view</span>
+        </button>
+      </div>
+    </div>
+
+    <!-- =================================================================== -->
+    <!-- 1. MAIN WORKER INTERFACE (SUB-CENTRE / PHC)                        -->
+    <!-- =================================================================== -->
+    <div id="view-subcentre" class="p-4 space-y-4 flex-1 overflow-y-auto bg-white">
+      
+      <h1 id="txt-headline" class="text-xl font-extrabold text-slate-900 tracking-tight my-1">
+        What do you want to record?
+      </h1>
+
+      <!-- ACTION BUTTON: STOCK RECEIVED -->
+      <button onclick="openModal('received')" class="w-full bg-emerald-600 hover:bg-emerald-700 active:scale-[0.99] text-white p-4 rounded-2xl flex items-start space-x-3.5 transition text-left shadow-md">
+        <div class="p-1">
+          <svg class="w-7 h-7" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2.5">
+            <path stroke-linecap="round" stroke-linejoin="round" d="M19 14l-7 7m0 0l-7-7m7 7V3" />
+          </svg>
+        </div>
+        <div>
+          <h2 id="txt-action-rcvd-title" class="text-lg font-bold">Stock received</h2>
+          <p id="txt-action-rcvd-desc" class="text-emerald-100 text-xs sm:text-sm font-medium mt-0.5">Supplies & medicines arriving today</p>
+        </div>
+      </button>
+
+      <!-- ACTION BUTTON: STOCK GIVEN OUT -->
+      <button onclick="openModal('given')" class="w-full bg-slate-50 hover:bg-slate-100 active:scale-[0.99] border border-slate-200 text-slate-800 p-4 rounded-2xl flex items-start space-x-3.5 transition text-left shadow-sm">
+        <div class="p-1 text-slate-600">
+          <svg class="w-7 h-7" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2.5">
+            <path stroke-linecap="round" stroke-linejoin="round" d="M5 10l7-7m0 0l7 7m-7-7v18" />
+          </svg>
+        </div>
+        <div>
+          <h2 id="txt-action-given-title" class="text-lg font-bold">Stock given out</h2>
+          <p id="txt-action-given-desc" class="text-slate-500 text-xs sm:text-sm font-medium mt-0.5">Dispensed to patients or sub-centres</p>
+        </div>
+      </button>
+
+      <!-- MEDICINE TRACKING DASHBOARD -->
+      <div class="bg-slate-50 border border-slate-200 rounded-2xl p-4 space-y-3.5 shadow-sm">
+        
+        <!-- DASHBOARD HEADER -->
+        <div class="flex justify-between items-center border-b border-slate-200 pb-2.5">
+          <div>
+            <h2 id="txt-tracking-title" class="text-base font-bold text-slate-900 tracking-wide">Medicine Stock Monitor</h2>
+            <p id="txt-tracking-subtitle" class="text-xs text-slate-500">Live inventory levels & FEFO tracking</p>
+          </div>
+          <span id="shelf-count-badge" class="bg-emerald-100 text-emerald-800 border border-emerald-300 font-bold px-2.5 py-1 rounded-lg text-xs">
+            0 Items
+          </span>
+        </div>
+
+        <!-- QUICK SUMMARY METRICS BAR -->
+        <div class="grid grid-cols-3 gap-2">
+          <div class="bg-white p-2.5 rounded-xl border border-slate-200 text-center shadow-sm">
+            <span id="metric-total-items" class="text-lg font-bold text-slate-800 block">0</span>
+            <span id="txt-metric-total" class="text-[10px] uppercase font-bold text-slate-500">Total SKUs</span>
+          </div>
+          <div class="bg-white p-2.5 rounded-xl border border-rose-200 text-center shadow-sm">
+            <span id="metric-low-stock" class="text-lg font-bold text-rose-600 block">0</span>
+            <span id="txt-metric-low" class="text-[10px] uppercase font-bold text-rose-600">Low Stock</span>
+          </div>
+          <div class="bg-white p-2.5 rounded-xl border border-purple-200 text-center shadow-sm">
+            <span id="metric-near-exp" class="text-lg font-bold text-purple-600 block">0</span>
+            <span id="txt-metric-near" class="text-[10px] uppercase font-bold text-purple-600">Near Expiry</span>
+          </div>
+        </div>
+
+        <!-- FEFO ALERT BANNER -->
+        <div id="fefo-alert-banner" class="hidden bg-purple-50 border border-purple-200 p-3 rounded-xl flex items-center space-x-3 text-xs text-purple-900">
+          <span class="text-lg">⚠️</span>
+          <div>
+            <strong class="font-semibold block text-purple-900">FEFO Alert (First Expire, First Out)</strong>
+            <span id="fefo-alert-msg">Medicines expiring within 30 days need immediate dispatch.</span>
+          </div>
+        </div>
+
+        <!-- SEARCH INPUT -->
+        <div class="relative">
+          <input type="text" id="med-search-input" oninput="renderMedicineInventory()" placeholder="Search medicine or batch number..." class="w-full bg-white border border-slate-300 rounded-xl px-3.5 py-2 text-xs text-slate-800 placeholder-slate-400 focus:outline-none focus:border-emerald-500 focus:ring-1 focus:ring-emerald-500" />
+        </div>
+
+        <!-- COLOR LEGEND -->
+        <div class="flex flex-wrap gap-2 text-[10px] font-semibold border-t border-slate-200 pt-2">
+          <span class="flex items-center space-x-1"><span class="w-2 h-2 rounded-full bg-rose-500"></span><span class="text-rose-600">Critical (&le;10)</span></span>
+          <span class="flex items-center space-x-1"><span class="w-2 h-2 rounded-full bg-amber-500"></span><span class="text-amber-600">Medium (11-50)</span></span>
+          <span class="flex items-center space-x-1"><span class="w-2 h-2 rounded-full bg-emerald-500"></span><span class="text-emerald-600">In Stock (&gt;50)</span></span>
+          <span class="flex items-center space-x-1"><span class="w-2 h-2 rounded-full bg-purple-500"></span><span class="text-purple-600">Near Expiry</span></span>
+        </div>
+
+        <!-- DYNAMIC MEDICINE LIST -->
+        <div id="medicine-inventory-list" class="space-y-2 pt-1">
+          <!-- Dynamically populated via JS -->
+        </div>
+      </div>
+
+      <!-- ENTRIES LOG ON THIS PHONE -->
+      <div class="bg-slate-50 border border-slate-200 text-slate-800 p-4 rounded-2xl flex items-center justify-between shadow-sm">
+        <span id="txt-entries-phone" class="text-sm font-bold">Entries on this phone</span>
+        <span id="entries-count-badge" class="bg-white border border-slate-300 text-slate-700 font-bold px-3 py-1 rounded-lg text-xs">
+          0
+        </span>
+      </div>
+
+      <!-- DYNAMIC LANGUAGE SELECTOR FOOTER -->
+      <div class="pt-3 border-t border-slate-200">
+        <p class="text-[11px] font-semibold text-slate-500 mb-2 text-center">Select Language / भाषा चुनें / ಭಾಷೆಯನ್ನು ಆಯ್ಕೆಮಾಡಿ</p>
+        <div class="grid grid-cols-4 gap-2">
+          <button id="lang-en" onclick="setLanguage('en')" class="bg-emerald-600 text-white font-bold py-2 rounded-xl text-xs shadow-sm">English</button>
+          <button id="lang-hi" onclick="setLanguage('hi')" class="bg-white border border-slate-300 text-slate-700 font-bold py-2 rounded-xl text-xs hover:bg-slate-50">हिंदी</button>
+          <button id="lang-kn" onclick="setLanguage('kn')" class="bg-white border border-slate-300 text-slate-700 font-bold py-2 rounded-xl text-xs hover:bg-slate-50">ಕನ್ನಡ</button>
+          <button id="lang-ta" onclick="setLanguage('ta')" class="bg-white border border-slate-300 text-slate-700 font-bold py-2 rounded-xl text-xs hover:bg-slate-50">தமிழ்</button>
+        </div>
+      </div>
+
+    </div>
+
+    <!-- =================================================================== -->
+    <!-- 2. DISTRICT VIEW (PIPELINE, MAP & TRANSFERS)                        -->
+    <!-- =================================================================== -->
+    <div id="view-district" class="hidden p-4 space-y-4 flex-1 overflow-y-auto bg-white">
+      
+      <div>
+        <p id="txt-district-subtitle" class="text-xs font-semibold text-slate-500">District view • block coordinator</p>
+        <h1 id="txt-district-title" class="text-xl font-extrabold text-slate-900 tracking-tight mt-0.5">
+          Chikkaballapur block, all sub-centres
+        </h1>
+      </div>
+
+      <!-- DISTRICT SUB-NAVIGATION BUTTONS -->
+      <div class="grid grid-cols-3 gap-2">
+        <button id="tab-btn-pipeline" onclick="switchDistrictTab('pipeline')" class="bg-emerald-600 text-white font-bold py-2 rounded-xl text-xs text-center shadow-sm transition">Pipeline</button>
+        <button id="tab-btn-map" onclick="switchDistrictTab('map')" class="bg-white border border-slate-300 text-slate-600 font-semibold py-2 rounded-xl text-xs text-center hover:bg-slate-50 transition">Map</button>
+        <button id="tab-btn-transfers" onclick="switchDistrictTab('transfers')" class="bg-white border border-slate-300 text-slate-600 font-semibold py-2 rounded-xl text-xs text-center hover:bg-slate-50 transition">Transfers</button>
+      </div>
+
+      <!-- TAB 1: PIPELINE VIEW -->
+      <div id="tab-pipeline" class="space-y-4">
+        <div class="bg-slate-50 border border-slate-200 p-3.5 rounded-2xl space-y-3">
+          <div class="flex justify-between items-center border-b border-slate-200 pb-2">
+            <h2 id="txt-pipeline-sent" class="text-base font-bold text-slate-800">Sent</h2>
+            <span id="sent-count" class="text-xs font-bold text-slate-500">1</span>
+          </div>
+          <div id="sent-cards-container" class="space-y-3">
+            <div id="card-ors" class="bg-white border border-slate-200 p-3.5 rounded-xl space-y-2.5 shadow-sm">
+              <div>
+                <h3 class="text-base font-bold text-slate-900">ORS sachets</h3>
+                <p class="text-xs text-emerald-600 font-semibold">Batch: B-2026-99</p>
+                <p class="text-xs text-slate-500 mt-0.5">200 • PHC Chikkaballapur &rarr; Sub-centre 5, Manchenahalli</p>
+                <p class="text-[10px] text-slate-400 mt-0.5">17 Sep 2026</p>
+              </div>
+              <button onclick="advancePipeline('card-ors', 'in-transit')" class="w-full bg-emerald-600 hover:bg-emerald-700 text-white font-bold py-2 rounded-xl text-xs shadow-sm transition">
+                Mark in transit
+              </button>
+            </div>
+          </div>
+        </div>
+
+        <div class="bg-slate-50 border border-slate-200 p-3.5 rounded-2xl space-y-3">
+          <div class="flex justify-between items-center border-b border-slate-200 pb-2">
+            <h2 id="txt-pipeline-transit" class="text-base font-bold text-slate-800">In transit</h2>
+            <span id="transit-count" class="text-xs font-bold text-slate-500">1</span>
+          </div>
+          <div id="transit-cards-container" class="space-y-3">
+            <div id="card-amoxicillin" class="bg-white border border-slate-200 p-3.5 rounded-xl space-y-2.5 shadow-sm">
+              <div>
+                <h3 class="text-base font-bold text-slate-900">Amoxicillin 250mg</h3>
+                <p class="text-xs text-emerald-600 font-semibold">Batch: AMX-4012</p>
+                <p class="text-xs text-slate-500 mt-0.5">200 • District warehouse &rarr; PHC Chikkaballapur Rural</p>
+                <p class="text-[10px] text-slate-400 mt-0.5">16 Sep 2026</p>
+              </div>
+              <button onclick="advancePipeline('card-amoxicillin', 'delivered')" class="w-full bg-slate-800 hover:bg-slate-900 text-white font-bold py-2 rounded-xl text-xs shadow-sm transition">
+                Mark as delivered
+              </button>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- TAB 2: MAP VIEW -->
+      <div id="tab-map" class="hidden space-y-3">
+        <div class="bg-slate-50 border border-slate-200 rounded-2xl p-4 space-y-3 shadow-sm">
+          <div class="flex justify-between items-center">
+            <h2 id="txt-map-title" class="text-base font-bold text-slate-800">Chikkaballapur Block Map View</h2>
+            <span class="text-[11px] text-emerald-600 font-semibold">● 3 Centres Online</span>
+          </div>
+          <div class="bg-white border border-slate-200 rounded-xl p-4 h-60 relative flex items-center justify-center overflow-hidden">
+            <div class="absolute inset-0 opacity-20 bg-[radial-gradient(#059669_1px,transparent_1px)] [background-size:16px_16px]"></div>
+            
+            <button onclick="showMapPinDetails('Chikkaballapur Rural PHC', 'Stock Level: Good', 'In Transit: 1 Shipment')" class="absolute top-8 left-8 bg-emerald-600 text-white font-bold text-[11px] px-2 py-1 rounded-lg shadow-sm flex items-center space-x-1">
+              <span>🏥</span><span>PHC Chikkaballapur</span>
+            </button>
+
+            <button onclick="showMapPinDetails('Sub-centre 5 (Jigani)', 'Stock Level: Low ORS', 'In Transit: ORS Sachets')" class="absolute bottom-10 left-16 bg-amber-500 text-white font-bold text-[11px] px-2 py-1 rounded-lg shadow-sm flex items-center space-x-1">
+              <span>📍</span><span>SC 5 Jigani</span>
+            </button>
+
+            <button onclick="showMapPinDetails('Sub-centre 3 (Sarjapura)', 'Stock Level: Optimal', 'In Transit: None')" class="absolute top-16 right-6 bg-slate-700 text-white font-bold text-[11px] px-2 py-1 rounded-lg shadow-sm flex items-center space-x-1">
+              <span>📍</span><span>SC 3 Sarjapura</span>
+            </button>
+          </div>
+          <div id="map-pin-info" class="bg-white p-3 rounded-xl border border-slate-200 text-xs text-slate-600 shadow-sm">
+            Tap any node on the map to inspect live stock status.
+          </div>
+        </div>
+      </div>
+
+      <!-- TAB 3: TRANSFERS VIEW (AUTOMATICALLY RECEIVES SCANNED/ADDED STOCK) -->
+      <div id="tab-transfers" class="hidden space-y-3">
+        <div class="bg-slate-50 border border-slate-200 rounded-2xl p-4 space-y-3 shadow-sm">
+          <div class="flex justify-between items-center">
+            <div>
+              <h2 id="txt-transfers-title" class="text-base font-bold text-slate-800">Stock Transfers Log</h2>
+              <p class="text-[11px] text-slate-500">Includes camera receipt scans & voice entries</p>
+            </div>
+            <button onclick="triggerNewTransfer()" class="bg-emerald-600 text-white font-bold text-xs px-3 py-1.5 rounded-lg hover:bg-emerald-700 transition">+ Transfer</button>
+          </div>
+
+          <!-- DYNAMIC LOG LIST -->
+          <div id="transfers-log-list" class="space-y-2">
+            <!-- Dynamic entries automatically prepended here -->
+            <div class="bg-white border border-slate-200 p-3 rounded-xl flex justify-between items-center shadow-sm">
+              <div>
+                <h4 class="font-bold text-slate-800 text-xs">Amoxicillin 250mg</h4>
+                <p class="text-[11px] text-slate-500">PHC Chikkaballapur Rural &rarr; Sub-centre 1</p>
+                <p class="text-[10px] text-emerald-600 font-mono">Qty: 50 • Batch: AMX-4012</p>
+              </div>
+              <span class="bg-emerald-50 text-emerald-700 border border-emerald-200 text-[10px] font-bold px-2 py-0.5 rounded">Completed</span>
+            </div>
+          </div>
+        </div>
+      </div>
+
+    </div>
+
+  </div>
+
+  <!-- =================================================================== -->
+  <!-- MODAL: ADD MEDICINE ENTRY WITH CAMERA AND RECORDING                -->
+  <!-- =================================================================== -->
+  <div id="entry-modal" class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm hidden justify-center items-center p-4 z-50">
+    <div class="bg-white border border-slate-200 rounded-2xl w-full max-w-md p-5 space-y-4 text-slate-800 shadow-2xl max-h-[90vh] overflow-y-auto">
+      
+      <div class="flex justify-between items-center border-b border-slate-200 pb-3">
+        <h2 id="modal-title" class="text-lg font-bold">Add Medicine Entry</h2>
+        <button onclick="closeModal()" class="text-slate-400 hover:text-slate-600 text-2xl font-bold">&times;</button>
+      </div>
+
+      <div class="space-y-3">
+        <div class="flex items-center justify-between">
+          <label id="lbl-med-name" class="text-[11px] font-bold text-slate-500 uppercase">Medicine Entries</label>
+          <button type="button" onclick="addMedicineRow()" class="bg-emerald-50 text-emerald-700 border border-emerald-200 rounded-lg px-2.5 py-1 text-[10px] font-bold hover:bg-emerald-100 transition">+ Add row</button>
+        </div>
+        <div id="medicine-entry-list" class="space-y-3"></div>
+      </div>
+
+      <!-- CAMERA & AUDIO UI SECTION -->
+      <div class="bg-slate-50 border border-slate-200 rounded-xl p-3.5 space-y-3">
+        <label id="lbl-media" class="text-[11px] font-bold text-slate-500 uppercase block">Verification Media (Receipt / Voice)</label>
+        
+        <div class="grid grid-cols-2 gap-2">
+          <!-- CAMERA BUTTON -->
+          <label class="bg-white hover:bg-slate-100 border border-slate-300 rounded-xl p-3 flex flex-col items-center justify-center cursor-pointer transition shadow-sm">
+            <svg class="w-5 h-5 text-emerald-600 mb-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 9a2 2 0 012-2h.93a2 2 0 001.664-.89l.812-1.22A2 2 0 0110.07 4h3.86a2 2 0 011.664.89l.812 1.22A2 2 0 0018.07 7H19a2 2 0 012 2v9a2 2 0 01-2 2H5a2 2 0 01-2-2V9z" />
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 13a3 3 0 11-6 0 3 3 0 016 0z" />
+            </svg>
+            <span id="txt-take-photo" class="text-[11px] font-semibold text-slate-700">Take Photo</span>
+            <input type="file" accept="image/*" capture="camera" onchange="handlePhotoCapture(event)" class="hidden" />
+          </label>
+
+          <!-- AUDIO RECORD BUTTON -->
+          <button id="record-btn" type="button" onclick="toggleAudioRecording()" class="bg-white hover:bg-slate-100 border border-slate-300 rounded-xl p-3 flex flex-col items-center justify-center transition shadow-sm">
+            <svg id="record-icon" class="w-5 h-5 text-emerald-600 mb-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 11a7 7 0 01-7 7m0 0a7 7 0 01-7-7m7 7v4m0 0H8m4 0h4m-4-8a3 3 0 01-3-3V5a3 3 0 116 0v6a3 3 0 01-3 3z" />
+            </svg>
+            <span id="record-label" class="text-[11px] font-semibold text-slate-700">Voice Note</span>
+          </button>
+        </div>
+
+        <div id="photo-preview-box" class="hidden flex items-center space-x-3 bg-white p-2 rounded-lg border border-slate-200">
+          <img id="photo-img" class="h-10 w-10 object-cover rounded border border-emerald-500" />
+          <span class="text-xs text-emerald-700 font-medium">✓ Photo Attached</span>
+        </div>
+
+        <div id="audio-preview-box" class="hidden">
+          <audio id="audio-player" controls class="w-full h-8 rounded"></audio>
+        </div>
+      </div>
+
+      <!-- SUBMIT BUTTON -->
+      <button id="btn-save-inventory" onclick="saveMedicineToInventory()" class="w-full bg-emerald-600 hover:bg-emerald-700 text-white font-bold py-3 rounded-xl shadow-md transition text-sm">
+        Add Medicine To Inventory
+      </button>
+
+    </div>
+  </div>
+
+  <script>
+    // --- TRANSLATIONS ---
+    const translations = {
+      en: {
+        banner: "Everything has reached the centre",
+        noSignal: "No signal",
+        subcentreBtn: "Sub-centre / PHC",
+        districtBtn: "District view",
+        headline: "What do you want to record?",
+        rcvdTitle: "Stock received",
+        rcvdDesc: "Supplies & medicines arriving today",
+        givenTitle: "Stock given out",
+        givenDesc: "Dispensed to patients or sub-centres",
+        trackTitle: "Medicine Stock Monitor",
+        trackSubtitle: "Live inventory levels & FEFO tracking",
+        metricTotal: "Total SKUs",
+        metricLow: "Low Stock",
+        metricNear: "Near Expiry",
+        entriesPhone: "Entries on this phone",
+        addMedBtn: "Add Medicine To Inventory",
+        lblMedName: "Medicine Name",
+        lblBatchNum: "Batch Number",
+        lblExpiryDate: "Expiry Date",
+        lblQty: "Quantity (Units)",
+        lblMedia: "Verification Media (Receipt / Voice)",
+        takePhoto: "Take Photo",
+        voiceNote: "Voice Note",
+        districtTitle: "Chikkaballapur block, all sub-centres",
+        districtSubtitle: "District view • block coordinator",
+        pipelineSent: "Sent",
+        pipelineTransit: "In transit",
+        mapTitle: "Chikkaballapur Block Map View",
+        transfersTitle: "Stock Transfers Log"
+      },
+      hi: {
+        banner: "सब कुछ केंद्र पर पहुंच चुका है",
+        noSignal: "सिग्नल नहीं है",
+        subcentreBtn: "उप-केंद्र / पीएचसी",
+        districtBtn: "जिला दृश्य",
+        headline: "आप क्या दर्ज करना चाहते हैं?",
+        rcvdTitle: "स्टॉक प्राप्त हुआ",
+        rcvdDesc: "आज आने वाली दवाइयां और आपूर्ति",
+        givenTitle: "स्टॉक दिया गया",
+        givenDesc: "मरीजों या उप-केंद्रों को दी गई दवाएं",
+        trackTitle: "दवा स्टॉक मॉनिटर",
+        trackSubtitle: "लाइव स्टॉक स्तर और एफईएफओ ट्रैकिंग",
+        metricTotal: "कुल दवाएं",
+        metricLow: "कम स्टॉक",
+        metricNear: "जल्द एक्सपायर",
+        entriesPhone: "इस फोन पर दर्ज प्रविष्टियां",
+        addMedBtn: "इन्वेंट्री में दवा जोड़ें",
+        lblMedName: "दवा का नाम",
+        lblBatchNum: "बैच नंबर",
+        lblExpiryDate: "एक्सपायरी तिथि",
+        lblQty: "मात्रा (इकाइयां)",
+        lblMedia: "सत्यापन मीडिया (रसीद / आवाज)",
+        takePhoto: "फोटो लें",
+        voiceNote: "वॉइस नोट",
+        districtTitle: "अनेकल ब्लॉक, सभी उप-केंद्र",
+        districtSubtitle: "जिला दृश्य • ब्लॉक समन्वयक",
+        pipelineSent: "भेजा गया",
+        pipelineTransit: "मार्ग में है",
+        mapTitle: "अनेकल ब्लॉक नक्शा दृश्य",
+        transfersTitle: "स्टॉक स्थानांतरण लॉग"
+      },
+      kn: {
+        banner: "ಎಲ್ಲವೂ ಕೇಂದ್ರವನ್ನು ತಲುಪಿದೆ",
+        noSignal: "ಸಿಗ್ನಲ್ ಇಲ್ಲ",
+        subcentreBtn: "ಉಪ-ಕೇಂದ್ರ / PHC",
+        districtBtn: "ಜಿಲ್ಲಾ ನೋಟ",
+        headline: "ನೀವು ಏನನ್ನು ದಾಖಲಿಸಲು ಬಯಸುತ್ತೀರಿ?",
+        rcvdTitle: "ಸ್ಟಾಕ್ ಸ್ವೀಕರಿಸಲಾಗಿದೆ",
+        rcvdDesc: "ಇಂದು ತಲುಪುವ ಔಷಧಗಳು ಮತ್ತು ಸರಬರಾಜುಗಳು",
+        givenTitle: "ಸ್ಟಾಕ್ ನೀಡಲಾಗಿದೆ",
+        givenDesc: "ರೋಗಿಗಳಿಗೆ ಅಥವಾ ಉಪ-ಕೇಂದ್ರಗಳಿಗೆ ನೀಡಲಾಗಿದೆ",
+        trackTitle: "ಔಷಧ ಸ್ಟಾಕ್ ಮಾನಿಟರ್",
+        trackSubtitle: "ಲೈವ್ ದಾಸ್ತಾನು ಮಟ್ಟಗಳು ಮತ್ತು FEFO ಟ್ರ್ಯಾಕಿಂಗ್",
+        metricTotal: "ಒಟ್ಟು ಔಷಧಗಳು",
+        metricLow: "ಕಡಿಮೆ ಸ್ಟಾಕ್",
+        metricNear: "ಬೇಗನೆ ಎಕ್ಸ್ ಪೈರಿ",
+        entriesPhone: "ಈ ಫೋನ್‌ನಲ್ಲಿರುವ ನಮೂದುಗಳು",
+        addMedBtn: "ದಾಸ್ತಾನಿಗೆ ಔಷಧವನ್ನು ಸೇರಿಸಿ",
+        lblMedName: "ಔಷಧದ ಹೆಸರು",
+        lblBatchNum: "ಬ್ಯಾಚ್ ಸಂಖ್ಯೆ",
+        lblExpiryDate: "ಅಂತ್ಯದ ದಿನಾಂಕ (Expiry)",
+        lblQty: "ಪ್ರಮಾಣ (ಯೂನಿಟ್‌ಗಳು)",
+        lblMedia: "ಪರಿಶೀಲನೆ ಮಾಧ್ಯಮ (ರಸೀದಿ / ಧ್ವನಿ)",
+        takePhoto: "ಫೋಟೋ ತೆಗೆಯಿರಿ",
+        voiceNote: "ವಾಯ್ಸ್ ನೋಟ್",
+        districtTitle: "ಚಿಕ್ಕಬಳ್ಳಾಪುರ ಬ್ಲಾಕ್, ಎಲ್ಲಾ ಉಪಕೇಂದ್ರಗಳು",
+        districtSubtitle: "ಜಿಲ್ಲಾ ನೋಟ • ಬ್ಲಾಕ್ ಸಂಯೋಜಕರು",
+        pipelineSent: "ಕಳುಹಿಸಲಾಗಿದೆ",
+        pipelineTransit: "ದಾರಿಯಲ್ಲಿದೆ (In Transit)",
+        mapTitle: "ಚಿಕ್ಕಬಳ್ಳಾಪುರ ಬ್ಲಾಕ್ ನಕ್ಷೆ ನೋಟ",
+        transfersTitle: "ಸ್ಟಾಕ್ ವರ್ಗಾವಣೆ ಲಾಗ್"
+      },
+      ta: {
+        banner: "அனைத்தும் மையத்தை அடைந்துவிட்டன",
+        noSignal: "சிக்னல் இல்லை",
+        subcentreBtn: "துணை மையம் / PHC",
+        districtBtn: "மாவட்ட பார்வை",
+        headline: "நீங்கள் எைப் பதிவு செய்ய விரும்புகிறீர்கள்?",
+        rcvdTitle: "சரக்கு பெறப்பட்டது",
+        rcvdDesc: "இன்று வரும் மருந்துகள் மற்றும் பொருட்கள்",
+        givenTitle: "சரக்கு வழங்கப்பட்டது",
+        givenDesc: "நோயாளி அல்லது துணை மையங்களுக்கு வழங்கப்பட்டது",
+        trackTitle: "மருந்து இருப்பு கண்காணிப்பு",
+        trackSubtitle: "நேரலை இருப்பு நிலை & FEFO கண்காணிப்பு",
+        metricTotal: "மொத்த மருந்துகள்",
+        metricLow: "குறைந்த இருப்பு",
+        metricNear: "விரைவில் காலாவதி",
+        entriesPhone: "இந்த போனில் பதிவு செய்யப்பட்டவை",
+        addMedBtn: "இருப்பில் மருந்தைச் சேர்க்கவும்",
+        lblMedName: "மருந்தின் பெயர்",
+        lblBatchNum: "பேட்ச் எண்",
+        lblExpiryDate: "காலாவதி தேதி",
+        lblQty: "அளவு (அலகுகள்)",
+        lblMedia: "சரிபார்ப்பு ஊடகம் (ரசீது / குரல்)",
+        takePhoto: "படம் எடுக்கவும்",
+        voiceNote: "குரல் பதிவு",
+        districtTitle: "ஆனேக்கல் பிளாக், அனைத்து துணை மையங்கள்",
+        districtSubtitle: "மாவட்ட பார்வை • பிளாக் ஒருங்கிணைப்பாளர்",
+        pipelineSent: "அனுப்பப்பட்டது",
+        pipelineTransit: "வழியில் உள்ளது",
+        mapTitle: "ஆனேக்கல் பிளாக் வரைபடப் பார்வை",
+        transfersTitle: "பரிமாற்றப் பதிவு"
+      }
+    };
+
+    var currentLang = 'en';
+    var photoAttached = false;
+    var audioAttached = false;
+    var API_BASE = '/api/v1';
+    var activePhcId = null;
+    var medicineEntryRows = [];
+
+    window.currentLang = currentLang;
+    window.photoAttached = photoAttached;
+    window.audioAttached = audioAttached;
+    window.API_BASE = API_BASE;
+    window.activePhcId = activePhcId;
+    window.medicineEntryRows = medicineEntryRows;
+
+    function setLanguage(lang) {
+      currentLang = lang;
+      window.currentLang = currentLang;
+      const t = translations[lang];
+
+      const textIds = [
+        ['txt-status-banner', t.banner],
+        ['txt-signal-badge', t.noSignal],
+        ['txt-btn-subcentre', t.subcentreBtn],
+        ['txt-btn-district', t.districtBtn],
+        ['txt-headline', t.headline],
+        ['txt-action-rcvd-title', t.rcvdTitle],
+        ['txt-action-rcvd-desc', t.rcvdDesc],
+        ['txt-action-given-title', t.givenTitle],
+        ['txt-action-given-desc', t.givenDesc],
+        ['txt-tracking-title', t.trackTitle],
+        ['txt-tracking-subtitle', t.trackSubtitle],
+        ['txt-metric-total', t.metricTotal],
+        ['txt-metric-low', t.metricLow],
+        ['txt-metric-near', t.metricNear],
+        ['txt-entries-phone', t.entriesPhone],
+        ['btn-save-inventory', t.addMedBtn],
+        ['lbl-med-name', t.lblMedName],
+        ['lbl-media', t.lblMedia],
+        ['txt-take-photo', t.takePhoto],
+        ['record-label', t.voiceNote],
+        ['txt-district-title', t.districtTitle],
+        ['txt-district-subtitle', t.districtSubtitle],
+        ['txt-pipeline-sent', t.pipelineSent],
+        ['txt-pipeline-transit', t.pipelineTransit],
+        ['txt-map-title', t.mapTitle],
+        ['txt-transfers-title', t.transfersTitle]
+      ];
+
+      textIds.forEach(([id, value]) => {
+        const el = document.getElementById(id);
+        if (el) el.innerText = value;
+      });
+
+      ['en', 'hi', 'kn', 'ta'].forEach(l => {
+        const btn = document.getElementById(`lang-${l}`);
+        if (l === lang) {
+          btn.className = "bg-emerald-600 text-white font-bold py-2 rounded-xl text-xs shadow-sm";
+        } else {
+          btn.className = "bg-white border border-slate-300 text-slate-700 font-bold py-2 rounded-xl text-xs hover:bg-slate-50";
+        }
+      });
+    }
+
+    // --- MEDICINE INVENTORY DATA ---
+    let localInventory = [
+      { id: 1, name: "ORS sachets", batch: "ORS-9982", expiry: "2027-04-20", quantity: 8, maxStock: 100 },
+      { id: 2, name: "Amoxicillin 250mg", batch: "AMX-4012", expiry: "2026-10-15", quantity: 35, maxStock: 100 },
+      { id: 3, name: "Paracetamol 500mg", batch: "PCM-1020", expiry: "2027-12-30", quantity: 120, maxStock: 200 }
+    ];
+
+    let currentActionType = 'received';
+    let entryCounter = 0;
+
+    window.localInventory = localInventory;
+
+    renderMedicineInventory();
+
+    async function loadWorkerInventory() {
+      try {
+        const phcResponse = await fetch(`${API_BASE}/phcs?active=true&limit=1`);
+        if (!phcResponse.ok) return;
+        const phcs = await phcResponse.json();
+        if (!phcs.length) return;
+        activePhcId = phcs[0].id;
+        const inventoryResponse = await fetch(`${API_BASE}/phcs/${activePhcId}/inventory`);
+        if (!inventoryResponse.ok) return;
+        const inventory = await inventoryResponse.json();
+        if (!inventory.length) return;
+        localInventory = inventory.map(item => ({
+          id: item.id,
+          name: item.drug_name,
+          batch: item.batch_no || 'No batch recorded',
+          expiry: item.expiry_date || 'No expiry recorded',
+          quantity: item.quantity_on_hand,
+          maxStock: item.max_stock_level || 150
+        }));
+        renderMedicineInventory();
+        document.getElementById('txt-status-banner').innerText = `${phcs[0].name} connected`;
+        document.getElementById('txt-signal-badge').innerText = 'Live API';
+      } catch (error) {
+        console.warn('Live worker inventory unavailable; showing demo data.', error);
+      }
+    }
+
+    loadWorkerInventory();
+
+    // --- MAIN VIEW TOGGLE ---
+    function switchMainView(viewName) {
+      const subBtn = document.getElementById('btn-subcentre');
+      const distBtn = document.getElementById('btn-district');
+      const subView = document.getElementById('view-subcentre');
+      const distView = document.getElementById('view-district');
+
+      if (viewName === 'subcentre') {
+        subBtn.className = "flex-1 py-2 rounded-lg bg-white text-emerald-700 font-bold shadow-sm text-center transition";
+        distBtn.className = "flex-1 py-2 rounded-lg text-slate-600 hover:text-slate-900 text-center transition";
+        subView.classList.remove('hidden');
+        distView.classList.add('hidden');
+      } else {
+        distBtn.className = "flex-1 py-2 rounded-lg bg-white text-emerald-700 font-bold shadow-sm text-center transition";
+        subBtn.className = "flex-1 py-2 rounded-lg text-slate-600 hover:text-slate-900 text-center transition";
+        distView.classList.remove('hidden');
+        subView.classList.add('hidden');
+      }
+    }
+
+    // --- DISTRICT SUB-TABS ---
+    function switchDistrictTab(tabName) {
+      const tabs = ['pipeline', 'map', 'transfers'];
+      tabs.forEach(tab => {
+        const btn = document.getElementById(`tab-btn-${tab}`);
+        const content = document.getElementById(`tab-${tab}`);
+        
+        if (tab === tabName) {
+          btn.className = "bg-emerald-600 text-white font-bold py-2 rounded-xl text-xs text-center shadow-sm transition";
+          content.classList.remove('hidden');
+        } else {
+          btn.className = "bg-white border border-slate-300 text-slate-600 font-semibold py-2 rounded-xl text-xs text-center hover:bg-slate-50 transition";
+          content.classList.add('hidden');
+        }
+      });
+    }
+
+    function showMapPinDetails(title, stock, transit) {
+      document.getElementById('map-pin-info').innerHTML = `
+        <strong class="text-slate-900 text-xs block">${title}</strong>
+        <span class="text-emerald-700 font-semibold">${stock}</span> • <span>${transit}</span>
+      `;
+    }
+
+    function triggerNewTransfer() {
+      addTransferLogEntry("Zinc Dispersible", "ZN-8840", 100, "District Warehouse → PHC Chikkaballapur Rural", false, false);
+    }
+
+    // --- ADD ENTRY TO TRANSFERS LOG ---
+    function addTransferLogEntry(itemName, batch, qty, route, photoAttached, audioAttached) {
+      const logContainer = document.getElementById('transfers-log-list');
+      const newItem = document.createElement('div');
+      newItem.className = "bg-white border border-slate-200 p-3 rounded-xl flex justify-between items-center shadow-sm animate-fade-in";
+      
+      let mediaBadges = "";
+      if (photoAttached) mediaBadges += `<span class="bg-blue-50 text-blue-700 text-[9px] px-1.5 py-0.5 rounded font-bold border border-blue-200 mr-1">📷 Photo</span>`;
+      if (audioAttached) mediaBadges += `<span class="bg-purple-50 text-purple-700 text-[9px] px-1.5 py-0.5 rounded font-bold border border-purple-200">🎙️ Voice</span>`;
+
+      newItem.innerHTML = `
+        <div>
+          <div class="flex items-center space-x-1.5">
+            <h4 class="font-bold text-slate-900 text-xs">${itemName}</h4>
+            ${mediaBadges}
+          </div>
+          <p class="text-[11px] text-slate-500">${route}</p>
+          <p class="text-[10px] text-emerald-700 font-mono font-semibold">Qty: ${qty} • Batch: ${batch}</p>
+        </div>
+        <span class="bg-emerald-50 text-emerald-700 border border-emerald-200 text-[10px] font-bold px-2 py-0.5 rounded">Logged</span>
+      `;
+      logContainer.prepend(newItem);
+    }
+
+    // --- MEDICINE INVENTORY DASHBOARD RENDER ---
+    function renderMedicineInventory() {
+      const container = document.getElementById('medicine-inventory-list');
+      const searchQuery = document.getElementById('med-search-input').value.toLowerCase().trim();
+      container.innerHTML = '';
+
+      const today = new Date();
+      let lowStockCount = 0;
+      let nearExpCount = 0;
+
+      const filteredList = localInventory.filter(item => 
+        item.name.toLowerCase().includes(searchQuery) || item.batch.toLowerCase().includes(searchQuery)
+      );
+
+      filteredList.forEach(item => {
+        const expDate = new Date(item.expiry);
+        const diffDays = Math.ceil((expDate - today) / (1000 * 60 * 60 * 24));
+
+        let isLow = item.quantity <= 10;
+        let isNearExp = diffDays <= 30 && diffDays >= 0;
+
+        if (isLow) lowStockCount++;
+        if (isNearExp) nearExpCount++;
+
+        let badgeHtml = "";
+        let borderClass = "border-slate-200";
+        let progressBg = "bg-emerald-500";
+
+        if (isNearExp) {
+          badgeHtml += `<span class="bg-purple-100 text-purple-800 border border-purple-200 px-2 py-0.5 rounded text-[10px] font-bold">Near Expiry</span>`;
+        }
+
+        if (isLow) {
+          badgeHtml += `<span class="bg-rose-100 text-rose-800 border border-rose-200 px-2 py-0.5 rounded text-[10px] font-bold">Low (${item.quantity})</span>`;
+          borderClass = "border-rose-300";
+          progressBg = "bg-rose-500";
+        } else if (item.quantity <= 50) {
+          badgeHtml += `<span class="bg-amber-100 text-amber-800 border border-amber-200 px-2 py-0.5 rounded text-[10px] font-bold">Medium (${item.quantity})</span>`;
+          progressBg = "bg-amber-500";
+        } else {
+          badgeHtml += `<span class="bg-emerald-100 text-emerald-800 border border-emerald-200 px-2 py-0.5 rounded text-[10px] font-bold">In Stock (${item.quantity})</span>`;
+        }
+
+        const fillPercentage = Math.min(100, Math.round((item.quantity / (item.maxStock || 150)) * 100));
+
+        const div = document.createElement('div');
+        div.className = `bg-white border ${borderClass} p-3 rounded-xl space-y-2 shadow-sm hover:border-emerald-500 transition`;
+        div.innerHTML = `
+          <div class="flex items-center justify-between">
+            <div>
+              <h3 class="font-bold text-slate-900 text-xs sm:text-sm">${item.name}</h3>
+              <p class="text-[10px] sm:text-[11px] text-slate-500 font-mono">Batch: ${item.batch} • Exp: ${item.expiry}</p>
+            </div>
+            <div class="flex flex-wrap items-end justify-end gap-1">
+              ${badgeHtml}
+            </div>
+          </div>
+
+          <div class="w-full bg-slate-100 rounded-full h-1.5 overflow-hidden flex border border-slate-200">
+            <div class="${progressBg} h-full rounded-full transition-all duration-500" style="width: ${fillPercentage}%"></div>
+          </div>
+        `;
+        container.appendChild(div);
+      });
+
+      document.getElementById('metric-total-items').innerText = localInventory.length;
+      document.getElementById('metric-low-stock').innerText = lowStockCount;
+      document.getElementById('metric-near-exp').innerText = nearExpCount;
+      document.getElementById('shelf-count-badge').innerText = `${localInventory.length} Items`;
+
+      const alertBanner = document.getElementById('fefo-alert-banner');
+      if (nearExpCount > 0) {
+        alertBanner.classList.remove('hidden');
+      } else {
+        alertBanner.classList.add('hidden');
+      }
+    }
+
+    // --- MODAL & SAVING STOCK (PROMOTES TO TRANSFERS VIEW) ---
+    function openModal(type) {
+      currentActionType = type;
+      photoAttached = false;
+      audioAttached = false;
+      resetMedicineRows();
+
+      const t = translations[currentLang];
+      document.getElementById('modal-title').innerText = type === 'received' ? t.rcvdTitle : t.givenTitle;
+      document.getElementById('photo-preview-box').classList.add('hidden');
+      document.getElementById('audio-preview-box').classList.add('hidden');
+
+      document.getElementById('entry-modal').classList.remove('hidden');
+      document.getElementById('entry-modal').classList.add('flex');
+    }
+
+    function closeModal() {
+      document.getElementById('entry-modal').classList.add('hidden');
+      document.getElementById('entry-modal').classList.remove('flex');
+    }
+
+    function createMedicineEntryRow(initial = {}) {
+      return {
+        id: `row-${Date.now()}-${Math.random().toString(16).slice(2)}`,
+        name: initial.name || '',
+        batch: initial.batch || '',
+        expiry: initial.expiry || '',
+        qty: initial.qty || 1,
+      };
+    }
+
+    function resetMedicineRows() {
+      medicineEntryRows = [createMedicineEntryRow({ qty: 1 })];
+      window.medicineEntryRows = medicineEntryRows;
+      renderMedicineRows();
+    }
+
+    function addMedicineRow(initial = {}) {
+      medicineEntryRows.push(createMedicineEntryRow(initial));
+      window.medicineEntryRows = medicineEntryRows;
+      renderMedicineRows();
+    }
+
+    function removeMedicineRow(rowId) {
+      medicineEntryRows = medicineEntryRows.filter(row => row.id !== rowId);
+      if (!medicineEntryRows.length) {
+        medicineEntryRows.push(createMedicineEntryRow({ qty: 1 }));
+      }
+      window.medicineEntryRows = medicineEntryRows;
+      renderMedicineRows();
+    }
+
+    function renderMedicineRows() {
+      const container = document.getElementById('medicine-entry-list');
+      if (!container) return;
+      container.innerHTML = '';
+
+      medicineEntryRows.forEach((row, index) => {
+        const card = document.createElement('div');
+        card.className = 'bg-slate-50 border border-slate-200 rounded-xl p-3 space-y-3';
+        card.innerHTML = `
+          <div class="flex items-center justify-between">
+            <span class="text-[10px] font-bold uppercase text-slate-500">Item ${index + 1}</span>
+            <button type="button" data-remove-row="${row.id}" class="text-[10px] font-bold text-rose-600 hover:text-rose-800">Remove</button>
+          </div>
+          <div class="space-y-1">
+            <label class="text-[10px] font-bold text-slate-500 uppercase">Medicine Name</label>
+            <input data-row-field="name" data-row-id="${row.id}" type="text" value="${row.name}" placeholder="e.g. Paracetamol 500mg" class="w-full bg-white border border-slate-300 rounded-xl p-3 text-xs text-slate-800 focus:outline-none focus:border-emerald-500 font-semibold" />
+          </div>
+          <div class="grid grid-cols-2 gap-2">
+            <div class="space-y-1">
+              <label class="text-[10px] font-bold text-slate-500 uppercase">Batch</label>
+              <input data-row-field="batch" data-row-id="${row.id}" type="text" value="${row.batch}" class="w-full bg-white border border-slate-300 rounded-xl p-3 text-xs text-slate-800 focus:outline-none focus:border-emerald-500 font-mono" />
+            </div>
+            <div class="space-y-1">
+              <label class="text-[10px] font-bold text-slate-500 uppercase">Expiry</label>
+              <input data-row-field="expiry" data-row-id="${row.id}" type="date" value="${row.expiry}" class="w-full bg-white border border-slate-300 rounded-xl p-3 text-xs text-slate-800 focus:outline-none focus:border-emerald-500" />
+            </div>
+          </div>
+          <div class="space-y-1">
+            <label class="text-[10px] font-bold text-slate-500 uppercase">Quantity</label>
+            <input data-row-field="qty" data-row-id="${row.id}" type="number" min="1" value="${row.qty}" class="w-full bg-white border border-slate-300 rounded-xl p-3 text-xs text-slate-800 focus:outline-none focus:border-emerald-500 font-bold" />
+          </div>
+        `;
+        container.appendChild(card);
+      });
+
+      container.querySelectorAll('[data-row-id]').forEach(input => {
+        input.addEventListener('input', (event) => {
+          const rowId = event.target.dataset.rowId;
+          const field = event.target.dataset.rowField;
+          const row = medicineEntryRows.find(item => item.id === rowId);
+          if (!row) return;
+          if (field === 'qty') {
+            row.qty = Math.max(1, parseInt(event.target.value) || 1);
+          } else {
+            row[field] = event.target.value;
+          }
+        });
+      });
+
+      container.querySelectorAll('[data-remove-row]').forEach(btn => {
+        btn.addEventListener('click', () => removeMedicineRow(btn.dataset.removeRow));
+      });
+    }
+
+    function getMedicineRowsFromForm() {
+      return medicineEntryRows
+        .map(row => ({
+          name: row.name.trim(),
+          batch: row.batch.trim() || 'B-2026-X1',
+          expiry: row.expiry || null,
+          qty: Math.max(1, parseInt(row.qty) || 1),
+        }))
+        .filter(row => row.name.length > 0);
+    }
+
+    function populateMedicineRowsFromExtraction(items) {
+      if (!items || !items.length) return;
+      medicineEntryRows = items.map(item => createMedicineEntryRow({
+        name: item.drug_name || item.name || '',
+        batch: item.batch_no || item.batch || '',
+        expiry: item.expiry_date || '',
+        qty: Math.max(0, parseInt(item.quantity) || 0),
+      }));
+      window.medicineEntryRows = medicineEntryRows;
+      renderMedicineRows();
+    }
+
+    async function saveMedicineToInventory() {
+      const rows = getMedicineRowsFromForm();
+      if (!rows.length) {
+        alert('Please add at least one medicine entry.');
+        return;
+      }
+
+      const transferRoute = currentActionType === 'received'
+        ? 'Supplier / District → PHC Chikkaballapur Rural'
+        : 'PHC Chikkaballapur Rural → Sub-centre / Patient';
+
+      for (const row of rows) {
+        const existingIndex = localInventory.findIndex(item =>
+          item.name.toLowerCase() === row.name.toLowerCase() && item.batch === row.batch
+        );
+
+        if (existingIndex !== -1) {
+          if (currentActionType === 'received') {
+            localInventory[existingIndex].quantity += row.qty;
+          } else {
+            localInventory[existingIndex].quantity = Math.max(0, localInventory[existingIndex].quantity - row.qty);
+          }
+        } else {
+          localInventory.push({
+            id: Date.now() + Math.random(),
+            name: row.name,
+            batch: row.batch,
+            expiry: row.expiry,
+            quantity: currentActionType === 'received' ? row.qty : 0,
+            maxStock: 150,
+          });
+        }
+
+        addTransferLogEntry(row.name, row.batch, row.qty, transferRoute, photoAttached, audioAttached);
+      }
+
+      entryCounter += rows.length;
+      document.getElementById('entries-count-badge').innerText = entryCounter;
+      renderMedicineInventory();
+      closeModal();
+      resetMedicineRows();
+
+      if (!activePhcId) return;
+
+      try {
+        for (const row of rows) {
+          const inventoryItem = localInventory.find(item =>
+            item.name.toLowerCase() === row.name.toLowerCase() && item.batch === row.batch
+          );
+
+          if (!inventoryItem) continue;
+
+          const payload = {
+            phc_id: activePhcId,
+            nlem_code: `NLEM-LOCAL-${Date.now()}-${Math.random().toString(16).slice(2, 8)}`,
+            drug_name: inventoryItem.name,
+            unit: 'units',
+            batch_no: inventoryItem.batch,
+            quantity_on_hand: inventoryItem.quantity,
+            expiry_date: inventoryItem.expiry,
+            avg_daily_consumption: 1,
+            supplier_lead_days: 7,
+            safety_stock_days: 5,
+            max_stock_level: inventoryItem.maxStock,
+          };
+
+          if (typeof inventoryItem.id === 'number' && Number.isInteger(inventoryItem.id)) {
+            const response = await fetch(`${API_BASE}/inventory/${inventoryItem.id}`, {
+              method: 'PATCH',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify({ quantity_on_hand: inventoryItem.quantity, batch_no: inventoryItem.batch, expiry_date: inventoryItem.expiry })
+            });
+            if (!response.ok) throw new Error(`Inventory update failed (${response.status})`);
+          } else {
+            const response = await fetch(`${API_BASE}/inventory`, {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify(payload)
+            });
+            if (!response.ok) throw new Error(`Inventory creation failed (${response.status})`);
+            const savedItem = await response.json();
+            inventoryItem.id = savedItem.id;
+          }
+        }
+      } catch (error) {
+        console.warn('Could not persist stock movement.', error);
+        alert(`Stock was added on this screen, but the server could not save it: ${error.message}`);
+      }
+    }
+
+    // --- CAMERA & AUDIO RECORDING HANDLERS ---
+    async function handlePhotoCapture(event) {
+      event.preventDefault();
+      const file = event.target.files[0];
+      if (file) {
+        try {
+          const image = await createImageBitmap(file);
+          const maxDimension = 1800;
+          const scale = Math.min(1, maxDimension / Math.max(image.width, image.height));
+          const canvas = document.createElement('canvas');
+          canvas.width = Math.max(1, Math.round(image.width * scale));
+          canvas.height = Math.max(1, Math.round(image.height * scale));
+          canvas.getContext('2d').drawImage(image, 0, 0, canvas.width, canvas.height);
+          const jpegBlob = await new Promise(resolve => canvas.toBlob(resolve, 'image/jpeg', 0.88));
+          if (!jpegBlob) throw new Error('The photo could not be prepared for OCR.');
+
+          document.getElementById('photo-img').src = URL.createObjectURL(jpegBlob);
+          document.getElementById('photo-preview-box').classList.remove('hidden');
+          photoAttached = true;
+
+          const formData = new FormData();
+          formData.append('file', jpegBlob, 'medicine-register.jpg');
+          const response = await fetch(`${API_BASE}/ai/invoice`, { method: 'POST', body: formData });
+          if (!response.ok) {
+            const error = await response.json().catch(() => ({}));
+            throw new Error(error.detail || `Photo extraction failed (${response.status})`);
+          }
+          const extraction = await response.json();
+          const lines = extraction.line_items || [];
+          if (!lines.length) throw new Error('No medicine rows were found in the photo.');
+          populateMedicineRowsFromExtraction(lines);
+        } catch (err) {
+          console.error('Gemini photo extraction failed.', {
+            error: err,
+            endpoint: `${API_BASE}/ai/invoice`,
+            fileName: file.name,
+            fileType: file.type,
+            fileSize: file.size
+          });
+          alert(err.message);
+        }
+      }
+    }
+
+    let mediaRecorder = null;
+    let audioChunks = [];
+    let isRecording = false;
+    let speechRecognition = null;
+    let speechTranscript = '';
+
+    const spokenNumberValues = {
+      zero: 0, one: 1, two: 2, three: 3, four: 4, five: 5,
+      six: 6, seven: 7, eight: 8, nine: 9, ten: 10,
+      eleven: 11, twelve: 12, twenty: 20, thirty: 30, fifty: 50,
+      hundred: 100, thousand: 1000,
+    };
+
+    function numberFromSpeech(value) {
+      const numeric = Number(value);
+      if (Number.isFinite(numeric)) return numeric;
+      return spokenNumberValues[String(value).toLowerCase()] ?? null;
+    }
+
+    function parseSpeechTranscript(transcript) {
+      const normalized = transcript.toLowerCase().replace(/[^a-z0-9 ]/g, ' ');
+      const direction = /\b(received|receive|got|arrived|stock in|added)\b/.test(normalized) ? 'received' : 'given';
+      const rows = [];
+      const medicines = [...localInventory]
+        .sort((left, right) => right.name.length - left.name.length)
+        .filter((item, index, items) => !items.slice(0, index).some(longerItem =>
+          longerItem.name.toLowerCase().includes(item.name.toLowerCase())
+        ));
+
+      medicines.forEach(item => {
+        const medicineName = item.name.toLowerCase();
+        const medicineIndex = normalized.indexOf(medicineName);
+        if (medicineIndex === -1) return;
+        const before = normalized.slice(Math.max(0, medicineIndex - 32), medicineIndex);
+        const after = normalized.slice(medicineIndex + medicineName.length, medicineIndex + medicineName.length + 32);
+        const numberPattern = /\b(\d+|one|two|three|four|five|six|seven|eight|nine|ten|eleven|twelve|twenty|thirty|fifty|hundred|thousand)\b/g;
+        const numbersBefore = [...before.matchAll(numberPattern)];
+        const numbersAfter = [...after.matchAll(numberPattern)];
+        const quantityMatch = numbersBefore[numbersBefore.length - 1] || numbersAfter[0];
+        const quantity = quantityMatch ? numberFromSpeech(quantityMatch[1]) : null;
+        if (quantity === null || quantity <= 0) return;
+        rows.push({ name: item.name, batch: item.batch, expiry: item.expiry, qty: quantity });
+      });
+
+      return { direction, rows };
+    }
+
+    function startSpeechRecognition() {
+      const Recognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+      if (!Recognition) return;
+      speechTranscript = '';
+      speechRecognition = new Recognition();
+      speechRecognition.continuous = true;
+      speechRecognition.interimResults = false;
+      speechRecognition.lang = currentLang === 'hi' ? 'hi-IN' : currentLang === 'kn' ? 'kn-IN' : currentLang === 'ta' ? 'ta-IN' : 'en-IN';
+      speechRecognition.onresult = event => {
+        speechTranscript = Array.from(event.results).map(result => result[0].transcript).join(' ');
+      };
+      speechRecognition.onerror = error => console.warn('Browser speech recognition unavailable.', error.error);
+      speechRecognition.start();
+    }
+
+    function stopSpeechRecognition() {
+      if (!speechRecognition) return;
+      speechRecognition.stop();
+      speechRecognition = null;
+    }
+
+    async function toggleAudioRecording() {
+      const btn = document.getElementById('record-btn');
+      const label = document.getElementById('record-label');
+      const icon = document.getElementById('record-icon');
+
+      if (!isRecording) {
+        try {
+          const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+          mediaRecorder = new MediaRecorder(stream);
+          audioChunks = [];
+
+          mediaRecorder.ondataavailable = (e) => {
+            if (e.data.size > 0) audioChunks.push(e.data);
+          };
+
+          mediaRecorder.onstop = () => {
+            const recordingType = mediaRecorder.mimeType || 'audio/webm';
+            const blob = new Blob(audioChunks, { type: recordingType });
+            document.getElementById('audio-player').src = URL.createObjectURL(blob);
+            document.getElementById('audio-preview-box').classList.remove('hidden');
+            audioAttached = true;
+
+            const formData = new FormData();
+            const extension = recordingType.includes('mp4') ? 'mp4' : recordingType.includes('ogg') ? 'ogg' : 'webm';
+            formData.append('file', blob, `voice-note.${extension}`);
+            fetch(`${API_BASE}/ai/audio`, { method: 'POST', body: formData })
+              .then(async response => {
+                if (!response.ok) {
+                  const error = await response.json().catch(() => ({}));
+                  throw new Error(error.detail || `Audio extraction failed (${response.status})`);
+                }
+                return response.json();
+              })
+              .then(extraction => {
+                const movements = (extraction && extraction.movements) || [];
+                if (!movements.length) {
+                  throw new Error('No medicine movement was understood in the recording.');
+                }
+                const rows = movements
+                  .filter(movement => movement.drug_name && movement.action_type !== 'unclear')
+                  .map(movement => ({
+                    name: movement.drug_name || '',
+                    batch: '',
+                    expiry: '',
+                    qty: Math.abs(movement.quantity_delta || 0),
+                  }));
+                if (!rows.length) throw new Error('No clear medicine movement was found in the recording.');
+                medicineEntryRows = rows.map(row => createMedicineEntryRow(row));
+                window.medicineEntryRows = medicineEntryRows;
+                renderMedicineRows();
+                const firstMovement = movements[0];
+                if (firstMovement.action_type === 'received') currentActionType = 'received';
+                if (firstMovement.action_type === 'dispensed' || firstMovement.action_type === 'disposed') currentActionType = 'given';
+              })
+              .catch(error => {
+                console.warn('Audio AI extraction unavailable.', error);
+                const localExtraction = parseSpeechTranscript(speechTranscript);
+                if (localExtraction.rows.length) {
+                  medicineEntryRows = localExtraction.rows.map(row => createMedicineEntryRow(row));
+                  window.medicineEntryRows = medicineEntryRows;
+                  currentActionType = localExtraction.direction;
+                  renderMedicineRows();
+                  alert('Gemini was unavailable, so the browser transcript was used to fill the medicine rows. Please review them before saving.');
+                } else {
+                  alert(`${error.message} Browser speech recognition could not identify a medicine and quantity.`);
+                }
+              });
+            mediaRecorder.stream?.getTracks().forEach(track => track.stop());
+          };
+
+          mediaRecorder.start();
+          startSpeechRecognition();
+          isRecording = true;
+
+          btn.classList.add('bg-rose-100', 'border-rose-400', 'animate-pulse');
+          icon.classList.remove('text-emerald-600');
+          icon.classList.add('text-rose-600');
+          label.innerText = 'Stop';
+
+        } catch (err) {
+          alert('Microphone access required for recording voice notes.');
+        }
+      } else {
+        if (mediaRecorder) {
+          mediaRecorder.stop();
+          stopSpeechRecognition();
+          isRecording = false;
+          btn.classList.remove('bg-rose-100', 'border-rose-400', 'animate-pulse');
+          icon.classList.remove('text-rose-600');
+          icon.classList.add('text-emerald-600');
+          label.innerText = translations[currentLang].voiceNote;
+        }
+      }
+    }
+
+    // --- PIPELINE ADVANCEMENT ---
+    function advancePipeline(cardId, targetState) {
+      const card = document.getElementById(cardId);
+      if (!card) return;
+
+      if (targetState === 'in-transit') {
+        const button = card.querySelector('button');
+        button.innerText = 'Mark as delivered';
+        button.className = 'w-full bg-slate-800 hover:bg-slate-900 text-white font-bold py-2 rounded-xl text-xs shadow-sm transition';
+        button.setAttribute('onclick', `advancePipeline('${cardId}', 'delivered')`);
+
+        document.getElementById('transit-cards-container').appendChild(card);
+        updatePipelineCounts();
+      } else if (targetState === 'delivered') {
+        card.remove();
+        updatePipelineCounts();
+      }
+    }
+
+    function updatePipelineCounts() {
+      document.getElementById('sent-count').innerText = document.getElementById('sent-cards-container').children.length;
+      document.getElementById('transit-count').innerText = document.getElementById('transit-cards-container').children.length;
+    }
+  </script>
+</body>
+</html>

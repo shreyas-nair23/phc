@@ -1,0 +1,203 @@
+Build with AI: Code for Communities — Second Edition
+ 
+Hybrid
+ 
+Team Size: 1-4
+ 
+Free
+ 
+ 
+LAST DATE TO REGISTER
+Wed 30 Sep 2026
+Team Dashboard
+Overview
+Why participate
+Who can participate
+Problem statements
+What to build & what to submit
+Timeline
+In-person demo day
+Mentorship & support
+Attend a GDG
+Rules & Guidelines
+FAQs
+ 
+Overview
+Build with AI: Code for Communities is a Google Cloud hackathon that brings together developers from across India to build AI-powered solutions for the challenges that matter most, right here at home. Healthcare supply chains. Climate resilience. Food security. Digital public infrastructure. Problems India's own cities, states, and communities face every day — and need builders to help solve.
+This hackathon is built around one theme: solving for India. Solutions designed by Indian developers, for Indian problems, at Indian scale.
+The in-person Demo Day will happen in October. More details will be shared with shortlisted teams.
+Why participate
+Your solution could go national.
+ 
+You'll present to the people who matter.
+ 
+Winning teams will showcase their solutions in person to industry experts.
+Mentorship at scale.
+ 
+GDG India's network hosts technical bootcamps and skilling sprints across cities before submissions close — in-person sessions on Google Cloud AI tools & technologies.
+Google Cloud credits for top teams.
+ 
+Top teams will receive GCP credits so that you're focused on building, not worrying about infrastructure.
+Cash prize pool:
+INR 10 lakhs
+A network that extends beyond the hackathon.
+Who can participate
+Open to:
+developers, AI/ML practitioners, product thinkers, freelancers — students, professionals across India, and startups
+Team size:
+up to 4 members per team
+Cost:
+free to register
+Solo registrants are also welcome
+Problem statements
+ 
+01
+AI for Digital Public Infrastructure & Governance
+THEME: INNOVATION
+THE PROBLEM
+Governments across India struggle to consolidate citizen feedback and align it with national infrastructure priorities. Development requests live in fragmented systems, leading to misaligned public spending, unaddressed infrastructure gaps, and no way to measure the impact of large-scale digital public infrastructure initiatives.
+THE CHALLENGE
+Build a scalable, multilingual AI platform — designed as a Digital Public Good — that aggregates citizen development requests via voice, text, and messaging apps across diverse linguistic regions of India. The system should analyse large datasets combining citizen feedback with national demographic data, infrastructure indices, and public investment plans, surfacing demand hotspots and recommending high-priority development projects to national policymakers.
+ 
+02
+Clean Air & Climate Resilience
+THEME: SUSTAINABILITY
+ 
+03
+Smart Health & Supply Chain Resilience
+THEME: RESILIENCE
+ 
+04
+Agricultural Intelligence
+THEME: COOPERATION
+What to build & what to submit
+Build a working prototype, not just a concept
+Your submission needs to demonstrate real, working functionality — and arrive as a complete package judges can evaluate end to end.
+ 
+Build
+Submissions must demonstrate all of the following:
+ 
+✓
+A functioning end-to-end flow for your track's core use case
+✓
+Mandatory integration of Google AI — GenAI, predictive modelling, or computer vision etc
+✓
+Real or realistic data — public datasets, sample data, or APIs where live data isn't available
+✓
+Built for India — the solution should be designed to scale across states and communities, not just a single city
+✓
+Multilingual or voice support where the track calls for it
+Submit
+Submission package:
+ 
+1
+Source code — public or access-granted GitHub repository
+2
+Demo video (3–5 minutes) — working end-to-end walkthrough
+3
+Pitch deck (10–12 slides) — problem, solution, AI approach, who it serves, why it's deployable, how it scales across India
+4
+Brief description — small description of your solution in 2-3 lines
+5
+Deployed link — A live deployed link of your prototype
+Tools & tech to build with
+All solutions must integrate Google AI. The following are recommended and fully supported:
+ 
+Generative AI & agents
+Gemini API, Google AI Studio, Vertex AI
+Predictive modelling
+Vertex AI (AutoML, custom training, model serving)
+Vision & multimodal
+Gemini multimodal, Vertex AI Vision (for citizen photo analysis, crop disease detection, pollution monitoring)
+Language & voice
+Cloud Speech-to-Text and Text-to-Speech, Translation API, Dialogflow (for multilingual and voice-first interfaces across India's linguistic regions)
+Geospatial
+Google Maps Platform, Google Earth Engine (for satellite imagery in climate and agriculture tracks)
+Data & backend
+BigQuery (for large-scale national datasets), Firebase (auth, real-time DB, rapid prototyping), Cloud Run / Cloud Functions
+Public data
+data.gov.in and Indian government open data portals, FAO agricultural datasets, WHO health data, ISRO/Bhuvan satellite data, IMD and national meteorological services
+Organizers: confirm Google AI Studio and Vertex AI credit details for registered teams.
+Evaluation parameters
+Submissions will be judged across five criteria, ranked here by weight.
+ 
+20%
+Problem-Solution Fit
+ 
+Does it directly and specifically address the stated challenge?
++
+25%
+AI/Technical Execution
+ 
+Is Google AI doing meaningful work? Does the prototype function end-to-end?
++
+20%
+Depth & Reach Across India
+ 
+Can this realistically scale from one city or state to communities across India?
++
+15%
+Impact Potential
+ 
+Scale of benefit — how many people, across how many states, how meaningfully?
++
+20%
+Deployability & Scalability
+ 
+Could this be piloted within a ministry or across states in weeks?
++
+Timeline
+11/08/2026 (TUESDAY)
+Launch
+Duration: 1 day.
+11/08/2026 (TUESDAY) – 30/09/2026 (WEDNESDAY)
+Registration Phase
+Duration: 51 days.
+11/08/2026 (TUESDAY) – 30/09/2026 (WEDNESDAY)
+Team Formation
+Duration: 51 days.
+14/08/2026 (FRIDAY)
+Introductory & Problem Statement Explainer Session
+Duration: 1 day.
+10/08/2026 (MONDAY) – 30/09/2026 (WEDNESDAY)
+Prototype Submission Phase
+Duration: 52 days.
+01/10/2026 (THURSDAY) – 15/10/2026 (THURSDAY)
+Prototype Evaluation Phase
+Duration: 15 days.
+16/10/2026 (FRIDAY)
+Top 20 Shortlist Announcement
+Duration: 1 day.
+23/10/2026 (FRIDAY)
+Virtual Demo Day
+Duration: 1 day.
+In-person demo day
+DATE
+TBA
+VENUE
+TBA
+Mentorship & support
+You won't be building this alone.
+ 
+GDG Skilling Sprints — in-person weekend bootcamps hosted across multiple cities by GDG India, covering several Google Cloud AI tools & technologies.
+Attend a GDG
+Attend a GDG in-person workshop in a city near you
+Before you build, get hands-on. GDG chapters across India are hosting in-person workshops and skilling sprints on Google Cloud AI tools — Gemini, Vertex AI, and more — to help you walk into the hackathon ready to build, not just ready to register.
+ 
+Find the GDG chapter closest to you and reserve your spot before workshops fill up.
+Sessions are hands-on and beginner-friendly, run by local Google Developer Experts.
+Can't find a workshop in your city? Look for a nearby city.
+City-wise workshop schedules will be published later in August — keep an eye on the website and your registered email address.
+Rules & Guidelines
+01
+All solutions must integrate Google AI — GenAI, predictive modelling, or computer vision. Submissions without Google AI integration will not be considered.
+02
+Teams must build during the hackathon period. Pre-existing projects are not eligible unless substantially extended for this challenge.
+03
+All code must be original or built on properly licensed open-source components — cite anything you reuse.
+04
+Solutions should be designed with cross-border applicability in mind — built for one context but scalable to others across BRICS nations.
+05
+Respectful, inclusive conduct is expected at all times.
+06
+Judges' decisions are final.

@@ -1,0 +1,1205 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>District Supply Chain Console — Medical Logistics Control</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:ital,wght@0,400;0,500;0,600;0,700;1,400&family=IBM+Plex+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+
+<style>
+/* =========================================================================
+   UNIFIED DASHBOARD STYLES
+   ========================================================================= */
+
+:root {
+  --bg-main: #F8FAFC;
+  --surface: #FFFFFF;
+  --surface-alt: #F1F5F9;
+  --border: #E2E8F0;
+  --border-focus: #0F7C74;
+  
+  --ink-primary: #0F172A;
+  --ink-secondary: #475569;
+  --ink-muted: #94A3B8;
+  
+  --accent: #0F7C74;
+  --accent-hover: #0B615B;
+  --accent-soft: #E6F4F1;
+  --accent-glow: rgba(15, 124, 116, 0.15);
+
+  --status-healthy: #10B981;
+  --status-healthy-soft: #ECFDF5;
+  --status-low: #F59E0B;
+  --status-low-soft: #FFFBEB;
+  --status-risk: #EF4444;
+  --status-risk-soft: #FEF2F2;
+
+  --status-req: #D97706;
+  --status-vendor: #2563EB;
+  --status-transit: #8B5CF6;
+  --status-delivered: #10B981;
+
+  --map-land: #E2E8F0;
+  --map-land-border: #CBD5E1;
+
+  --radius-sm: 6px;
+  --radius-md: 10px;
+  --radius-lg: 14px;
+
+  --shadow-sm: 0 1px 3px 0 rgba(0, 0, 0, 0.05);
+  --shadow-md: 0 4px 6px -1px rgba(0, 0, 0, 0.05), 0 2px 4px -1px rgba(0, 0, 0, 0.03);
+  --shadow-lg: 0 10px 15px -3px rgba(0, 0, 0, 0.05);
+}
+
+* { 
+  box-sizing: border-box; 
+  cursor: none !important;
+}
+
+body {
+  margin: 0;
+  background: var(--bg-main);
+  background-image: 
+    linear-gradient(to right, rgba(226, 232, 240, 0.4) 1px, transparent 1px),
+    linear-gradient(to bottom, rgba(226, 232, 240, 0.4) 1px, transparent 1px);
+  background-size: 32px 32px;
+  color: var(--ink-primary);
+  font-family: "IBM Plex Sans", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+  -webkit-font-smoothing: antialiased;
+}
+
+.custom-cursor-dot {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 6px;
+  height: 6px;
+  background-color: var(--accent);
+  border-radius: 50%;
+  pointer-events: none;
+  z-index: 9999;
+  transform: translate(-50%, -50%);
+  transition: opacity 0.15s ease-in-out;
+}
+
+.custom-cursor-ring {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 32px;
+  height: 32px;
+  border: 1.5px solid var(--accent);
+  border-radius: 50%;
+  pointer-events: none;
+  z-index: 9998;
+  transform: translate(-50%, -50%);
+  transition: width 0.2s ease, height 0.2s ease, background-color 0.2s ease, border-color 0.2s ease;
+  background-color: transparent;
+}
+
+.custom-cursor-ring.hovering {
+  width: 48px;
+  height: 48px;
+  background-color: var(--accent-glow);
+  border-color: var(--accent-hover);
+}
+
+.mono { font-family: "IBM Plex Mono", ui-monospace, monospace; }
+
+.app-shell {
+  display: flex;
+  flex-direction: column;
+  min-height: 100vh;
+}
+
+.app-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  padding: 14px 28px;
+  background: rgba(255, 255, 255, 0.85);
+  backdrop-filter: blur(12px);
+  border-bottom: 1px solid var(--border);
+  box-shadow: var(--shadow-sm);
+  z-index: 10;
+}
+
+.brand-section {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.brand-logo {
+  width: 38px;
+  height: 38px;
+  border-radius: var(--radius-md);
+  background: linear-gradient(135deg, #0F7C74 0%, #064E3B 100%);
+  color: #fff;
+  font-family: "IBM Plex Mono", monospace;
+  font-weight: 700;
+  font-size: 15px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow: 0 2px 4px var(--accent-glow);
+}
+
+.brand-title .product {
+  font-size: 15px;
+  font-weight: 700;
+  color: var(--ink-primary);
+  line-height: 1.2;
+}
+
+.brand-title .district {
+  font-size: 12px;
+  color: var(--ink-secondary);
+}
+
+.header-stats {
+  display: flex;
+  gap: 20px;
+}
+
+.stat-box {
+  padding-left: 16px;
+  border-left: 1px solid var(--border);
+  text-align: right;
+}
+
+.stat-box:first-child { border-left: none; }
+
+.stat-box .val {
+  font-family: "IBM Plex Mono", monospace;
+  font-size: 18px;
+  font-weight: 600;
+  line-height: 1.1;
+  color: var(--ink-primary);
+}
+
+.stat-box .lbl {
+  font-size: 11px;
+  color: var(--ink-secondary);
+  margin-top: 2px;
+  text-transform: uppercase;
+  letter-spacing: 0.3px;
+}
+
+.stat-box.risk .val { color: var(--status-risk); }
+
+.app-body {
+  flex: 1;
+  display: flex;
+}
+
+.app-rail {
+  width: 64px;
+  background: rgba(255, 255, 255, 0.85);
+  backdrop-filter: blur(12px);
+  border-right: 1px solid var(--border);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 8px;
+  padding-top: 20px;
+}
+
+.rail-btn {
+  position: relative;
+  width: 42px;
+  height: 42px;
+  border-radius: var(--radius-md);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--ink-secondary);
+  border: none;
+  background: transparent;
+  transition: all 0.2s ease;
+}
+
+.rail-btn svg { width: 20px; height: 20px; }
+
+.rail-btn:hover {
+  background: var(--surface-alt);
+  color: var(--ink-primary);
+}
+
+.rail-btn.active {
+  background: var(--accent-soft);
+  color: var(--accent);
+}
+
+.rail-btn.active::before {
+  content: "";
+  position: absolute;
+  left: -11px;
+  top: 8px;
+  bottom: 8px;
+  width: 3px;
+  background: var(--accent);
+  border-radius: 0 4px 4px 0;
+}
+
+.rail-badge {
+  position: absolute;
+  top: 6px;
+  right: 6px;
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: var(--status-risk);
+  border: 2px solid var(--surface);
+  display: none;
+}
+
+.rail-badge.visible { display: block; }
+
+.app-content {
+  flex: 1;
+  padding: 24px;
+  overflow-y: auto;
+}
+
+.view-panel { display: none; }
+.view-panel.active { display: block; }
+
+.panel-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 20px;
+}
+
+.panel-header.centered {
+  flex-direction: column;
+  text-align: center;
+}
+
+.panel-header h2 {
+  font-size: 18px;
+  font-weight: 700;
+  margin: 0;
+}
+
+.panel-header p {
+  font-size: 13px;
+  color: var(--ink-secondary);
+  margin: 2px 0 0 0;
+}
+
+.filter-bar {
+  display: flex;
+  gap: 12px;
+  align-items: center;
+  margin-bottom: 16px;
+  flex-wrap: wrap;
+}
+
+.search-input, .select-input {
+  padding: 8px 12px;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  font-size: 13px;
+  font-family: inherit;
+  background: var(--surface);
+  color: var(--ink-primary);
+  outline: none;
+  transition: border-color 0.15s;
+}
+
+.search-input:focus, .select-input:focus {
+  border-color: var(--accent);
+  box-shadow: 0 0 0 2px var(--accent-glow);
+}
+
+.search-input { min-width: 240px; }
+
+/* EQUALIZED MAP LAYOUT & CARDS */
+.map-layout {
+  display: flex;
+  gap: 20px;
+  align-items: stretch;
+  justify-content: center;
+  width: 100%;
+  max-width: 1400px;
+  margin: 0 auto;
+}
+
+.map-card {
+  flex: 2;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-lg);
+  background: var(--surface);
+  box-shadow: var(--shadow-sm);
+  padding: 20px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.map-sidebar {
+  flex: 1;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-lg);
+  background: var(--surface);
+  padding: 24px;
+  box-shadow: var(--shadow-sm);
+  font-size: 13px;
+  display: flex;
+  flex-direction: column;
+}
+
+#map-svg {
+  width: 100%;
+  height: 100%;
+  max-height: 440px;
+  display: block;
+}
+
+.taluk-label {
+  font-size: 11px;
+  fill: var(--ink-primary);
+  font-family: "IBM Plex Sans", sans-serif;
+  font-weight: 600;
+  letter-spacing: 0.2px;
+  pointer-events: none;
+}
+
+.map-marker-node {
+  transform-box: fill-box;
+  transform-origin: center;
+  transition: transform 0.2s ease-out;
+}
+
+.map-marker {
+  stroke: #ffffff;
+  stroke-width: 2.5;
+  transition: stroke-width 0.2s ease, filter 0.2s ease;
+  filter: drop-shadow(0 2px 4px rgba(0,0,0,0.1));
+}
+
+.map-marker-node:hover {
+  transform: scale(1.25);
+}
+
+.map-marker-node:hover .map-marker {
+  stroke: var(--accent);
+  stroke-width: 3;
+  filter: drop-shadow(0 4px 8px rgba(0,0,0,0.2));
+}
+
+.pulse-ring {
+  transform-box: fill-box;
+  transform-origin: center;
+  animation: marker-pulse 2.2s ease-out infinite;
+  pointer-events: none;
+}
+
+@keyframes marker-pulse {
+  0%   { transform: scale(1); opacity: 0.6; }
+  100% { transform: scale(2.8); opacity: 0; }
+}
+
+.transfer-line {
+  stroke: var(--accent);
+  stroke-width: 2.5;
+  stroke-dasharray: 6 4;
+  animation: dash-flow 1.5s linear infinite;
+}
+
+@keyframes dash-flow {
+  from { stroke-dashoffset: 20; }
+  to { stroke-dashoffset: 0; }
+}
+
+.map-sidebar h3 {
+  font-size: 13px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  margin: 0 0 16px 0;
+  color: var(--ink-secondary);
+}
+
+.legend-item {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-bottom: 10px;
+  font-weight: 500;
+}
+
+.swatch {
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  flex: none;
+}
+
+.side-detail-card {
+  margin-top: 20px;
+  padding-top: 20px;
+  border-top: 1px solid var(--border);
+  display: none;
+  flex: 1;
+}
+
+.side-detail-card.active { 
+  display: flex;
+  flex-direction: column;
+}
+
+.side-detail-card h4 {
+  font-size: 16px;
+  font-weight: 700;
+  margin: 0 0 4px 0;
+}
+
+.side-detail-card .sub {
+  font-size: 12px;
+  color: var(--ink-secondary);
+  margin-bottom: 12px;
+}
+
+.health-status-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 4px 10px;
+  border-radius: 999px;
+  font-size: 12px;
+  font-weight: 600;
+  margin-bottom: 12px;
+  width: fit-content;
+}
+
+.action-btn-group {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  margin-top: auto;
+  padding-top: 16px;
+}
+
+.btn {
+  width: 100%;
+  font-size: 13px;
+  font-family: inherit;
+  font-weight: 600;
+  padding: 10px 12px;
+  border-radius: var(--radius-sm);
+  border: 1px solid var(--border);
+  background: var(--surface);
+  color: var(--ink-primary);
+  transition: all 0.15s ease;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+}
+
+.btn:hover {
+  border-color: var(--accent);
+  color: var(--accent);
+  background: var(--surface-alt);
+}
+
+.btn-primary {
+  background: var(--accent);
+  border-color: var(--accent);
+  color: #fff;
+}
+
+.btn-primary:hover {
+  background: var(--accent-hover);
+  color: #fff;
+}
+
+/* KANBAN BOARD STYLES */
+.kanban-board-wrap {
+  overflow-x: auto;
+  padding-bottom: 12px;
+}
+
+.kanban-board {
+  display: grid;
+  grid-auto-flow: column;
+  grid-auto-columns: minmax(280px, 1fr);
+  gap: 16px;
+  min-width: 1000px;
+}
+
+.kanban-col {
+  background: var(--surface-alt);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-lg);
+  display: flex;
+  flex-direction: column;
+  max-height: 78vh;
+}
+
+.kanban-col-head {
+  padding: 14px 16px;
+  border-bottom: 2px solid var(--col-color, var(--border));
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.kanban-col-head h3 {
+  font-size: 14px;
+  font-weight: 700;
+  margin: 0;
+}
+
+.kanban-count {
+  font-family: "IBM Plex Mono", monospace;
+  font-size: 12px;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  padding: 2px 8px;
+  border-radius: 999px;
+  font-weight: 600;
+}
+
+.kanban-card-list {
+  list-style: none;
+  margin: 0;
+  padding: 12px;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  overflow-y: auto;
+  flex: 1;
+}
+
+.kanban-card {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-left: 4px solid var(--col-color, var(--border));
+  border-radius: var(--radius-md);
+  padding: 12px;
+  box-shadow: var(--shadow-sm);
+  transition: transform 0.15s ease, box-shadow 0.15s ease;
+}
+
+.kanban-card:hover {
+  box-shadow: var(--shadow-md);
+  transform: translateY(-2px);
+}
+
+.kanban-card-top {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+}
+
+.kanban-phc {
+  font-size: 13.5px;
+  font-weight: 700;
+}
+
+.kanban-meta {
+  font-size: 11px;
+  color: var(--ink-secondary);
+  margin-top: 2px;
+}
+
+.urgent-badge {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: var(--status-risk);
+  box-shadow: 0 0 0 2px var(--status-risk-soft);
+}
+
+.kanban-card-body {
+  margin-top: 10px;
+  font-size: 13px;
+}
+
+.kanban-med { font-weight: 600; color: var(--ink-primary); }
+.kanban-vendor { font-size: 12px; color: var(--ink-secondary); margin-top: 2px; }
+
+.kanban-card-foot {
+  margin-top: 12px;
+  padding-top: 8px;
+  border-top: 1px solid var(--border);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.kanban-days {
+  font-size: 11px;
+  color: var(--ink-secondary);
+}
+
+.transfer-card-item {
+  background: var(--surface-alt);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-md);
+  padding: 12px;
+  margin-bottom: 12px;
+}
+
+.transfer-card-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  font-weight: 600;
+  margin-bottom: 6px;
+}
+
+.transfer-card-details {
+  font-size: 12px;
+  color: var(--ink-secondary);
+  line-height: 1.4;
+  margin-bottom: 10px;
+}
+
+@media (max-width: 900px) {
+  .map-layout { flex-direction: column; }
+  .map-card, .map-sidebar { flex: 1 1 100%; width: 100%; }
+}
+</style>
+</head>
+<body class="nm-page pl-page">
+
+<div class="custom-cursor-dot" id="cursor-dot"></div>
+<div class="custom-cursor-ring" id="cursor-ring"></div>
+
+<div class="app-shell">
+  <header class="app-header">
+    <div class="brand-section">
+      <div class="brand-logo">SC</div>
+      <div class="brand-title">
+        <div class="product">Supply Chain Console</div>
+        <div class="district">Chikkaballapur District &middot; Healthcare Network</div>
+      </div>
+    </div>
+    <div class="header-stats" id="global-stats"></div>
+  </header>
+
+  <div class="app-body">
+    <nav class="app-rail" aria-label="Main Navigation">
+      <button type="button" class="rail-btn active" id="nav-map" title="PHC Network Map">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="10" r="3"/><path d="M12 21s7-6.2 7-11a7 7 0 1 0-14 0c0 4.8 7 11 7 11z"/></svg>
+      </button>
+      <button type="button" class="rail-btn" id="nav-pipeline" title="Supply Chain Pipeline">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="4" width="5" height="16" rx="1"/><rect x="9.5" y="4" width="5" height="11" rx="1"/><rect x="16" y="4" width="5" height="7" rx="1"/></svg>
+      </button>
+      <button type="button" class="rail-btn" id="nav-transfers" title="Inter-PHC Transfers">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 8h13M17 8l-3-3M17 8l-3 3"/><path d="M20 16H7M7 16l3-3M7 16l3 3"/></svg>
+        <span class="rail-badge" id="transfer-badge"></span>
+      </button>
+    </nav>
+
+    <main class="app-content">
+      <!-- MAP VIEW -->
+      <section id="view-map" class="view-panel active">
+        <div class="panel-header centered">
+          <h2>PHC Network Map</h2>
+          <p>Geospatial stock health across all centres in the district</p>
+        </div>
+
+        <div class="map-layout">
+          <div class="map-card">
+            <svg id="map-svg" viewBox="0 0 600 400" xmlns="http://www.w3.org/2000/svg">
+              <rect x="0" y="0" width="600" height="400" fill="var(--surface)"/>
+              
+              <!-- Proportional, balanced boundary -->
+              <path d="M 110 80 L 250 50 L 380 45 L 490 70 L 520 160 L 510 290 L 440 360 L 300 375 L 170 360 L 100 290 L 90 170 Z"
+                    fill="var(--map-land)" stroke="var(--map-land-border)" stroke-width="2"/>
+              
+              <g id="map-lines-layer"></g>
+              <g id="map-markers-layer"></g>
+
+              <!-- Text Labels -->
+              <g id="map-labels-layer">
+                <text class="taluk-label" x="105" y="160">Gudibande</text>
+                <text class="taluk-label" x="410" y="115">Bagepalli</text>
+                <text class="taluk-label" x="100" y="280">Gauribidanur</text>
+                <text class="taluk-label" x="310" y="270">Chikkaballapur</text>
+                <text class="taluk-label" x="460" y="295">Chintamani</text>
+                <text class="taluk-label" x="230" y="385">Sidlaghatta</text>
+
+                <text class="taluk-label" x="230" y="175">Perisandra</text>
+                <text class="taluk-label" x="260" y="235">Manchenahalli</text>
+                <text class="taluk-label" x="350" y="215">Bashettahalli</text>
+              </g>
+            </svg>
+          </div>
+
+          <div class="map-sidebar">
+            <h3>Stock Health Overview</h3>
+            <div class="legend-item"><span class="swatch" style="background:var(--status-healthy)"></span>Healthy Stock</div>
+            <div class="legend-item"><span class="swatch" style="background:var(--status-low)"></span>Low Stock</div>
+            <div class="legend-item"><span class="swatch" style="background:var(--status-risk)"></span>At Critical Risk</div>
+
+            <div class="side-detail-card" id="phc-detail-card">
+              <h4 id="detail-name"></h4>
+              <div class="sub" id="detail-sub"></div>
+              <div class="health-status-badge" id="detail-badge"></div>
+              <div class="sub" id="detail-flagged"></div>
+              <div class="action-btn-group">
+                <button type="button" class="btn" id="btn-view-phc-orders">View Orders in Pipeline</button>
+                <button type="button" class="btn btn-primary" id="btn-suggest-transfer">Suggest Inter-PHC Transfer</button>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- PIPELINE VIEW -->
+      <section id="view-pipeline" class="view-panel">
+        <div class="panel-header">
+          <div>
+            <h2>Requisition Pipeline</h2>
+            <p>Track, manage, and process active medical orders across lifecycle stages</p>
+          </div>
+        </div>
+
+        <div class="filter-bar">
+          <input type="text" id="pipeline-search" class="search-input" placeholder="Search PHC, drug, or order ID...">
+          <select id="pipeline-phc-filter" class="select-input">
+            <option value="">All PHCs</option>
+          </select>
+          <select id="pipeline-urgency-filter" class="select-input">
+            <option value="">All Priorities</option>
+            <option value="urgent">Urgent Only</option>
+          </select>
+        </div>
+
+        <div class="kanban-board-wrap">
+          <div class="kanban-board" id="kanban-board"></div>
+        </div>
+      </section>
+
+      <!-- TRANSFER VIEW -->
+      <section id="view-transfers" class="view-panel">
+        <div class="panel-header">
+          <div>
+            <h2>Inter-PHC Transfers</h2>
+            <p>Redistribute surplus stock from healthy PHCs to nearby critical facilities</p>
+          </div>
+        </div>
+
+        <div class="filter-bar">
+          <select id="transfer-target-phc" class="select-input">
+            <option value="">Select Recipient PHC (In Need)</option>
+          </select>
+        </div>
+
+        <div class="map-layout">
+          <div class="map-card">
+            <svg id="transfer-map-svg" viewBox="0 0 600 400" xmlns="http://www.w3.org/2000/svg">
+              <rect x="0" y="0" width="600" height="400" fill="var(--surface)"/>
+              <path d="M 110 80 L 250 50 L 380 45 L 490 70 L 520 160 L 510 290 L 440 360 L 300 375 L 170 360 L 100 290 L 90 170 Z"
+                    fill="var(--map-land)" stroke="var(--map-land-border)" stroke-width="2"/>
+              <g id="tmap-lines-layer"></g>
+              <g id="tmap-markers-layer"></g>
+            </svg>
+          </div>
+          
+          <div class="map-sidebar">
+            <h3>Suggested Surplus Donors</h3>
+            <div id="transfer-candidates-list">
+              <p style="color: var(--ink-secondary); font-size: 12px;">Select a recipient PHC above or from the main map to view optimal nearby donor routes.</p>
+            </div>
+          </div>
+        </div>
+      </section>
+    </main>
+  </div>
+</div>
+
+<script>
+(function() {
+  "use strict";
+
+  const SVG_NS = "http://www.w3.org/2000/svg";
+
+  const HEALTH_META = {
+    healthy: { label: "Healthy", color: "var(--status-healthy)", bg: "var(--status-healthy-soft)" },
+    low:     { label: "Low Stock", color: "var(--status-low)", bg: "var(--status-low-soft)" },
+    at_risk: { label: "At Risk", color: "var(--status-risk)", bg: "var(--status-risk-soft)" }
+  };
+
+  const STAGES = ["requisition_sent", "vendor_confirmed", "in_transit", "delivered"];
+  const STAGE_META = {
+    requisition_sent: { label: "Requisition Sent", color: "var(--status-req)" },
+    vendor_confirmed: { label: "Vendor Confirmed", color: "var(--status-vendor)" },
+    in_transit:        { label: "In Transit", color: "var(--status-transit)" },
+    delivered:          { label: "Delivered & Verified", color: "var(--status-delivered)" }
+  };
+
+  // Relative path works on both Vercel (same domain) and local uvicorn.
+  const API_BASE = "/api/v1";
+
+  let phcs = [
+    { id: "PHC-014", name: "Gudibande PHC", taluk: "Gudibande", x: 160, y: 140, health: "low", flagged_medicines: 3, last_updated: "2026-09-15" },
+    { id: "PHC-021", name: "Chintamani PHC", taluk: "Chintamani", x: 450, y: 270, health: "healthy", flagged_medicines: 0, last_updated: "2026-09-15" },
+    { id: "PHC-009", name: "Bagepalli PHC", taluk: "Bagepalli", x: 400, y: 110, health: "at_risk", flagged_medicines: 5, last_updated: "2026-09-14" },
+    { id: "PHC-003", name: "Sidlaghatta PHC", taluk: "Sidlaghatta", x: 290, y: 360, health: "low", flagged_medicines: 2, last_updated: "2026-09-15" },
+    { id: "PHC-007", name: "Chikkaballapur Rural PHC", taluk: "Chikkaballapur", x: 300, y: 250, health: "healthy", flagged_medicines: 0, last_updated: "2026-09-15" },
+    { id: "PHC-012", name: "Gauribidanur PHC", taluk: "Gauribidanur", x: 170, y: 260, health: "at_risk", flagged_medicines: 6, last_updated: "2026-09-13" },
+    { id: "PHC-002", name: "Manchenahalli PHC", taluk: "Chikkaballapur", x: 250, y: 220, health: "low", flagged_medicines: 2, last_updated: "2026-09-14" },
+    { id: "PHC-025", name: "Bashettahalli PHC", taluk: "Chikkaballapur", x: 340, y: 210, health: "healthy", flagged_medicines: 0, last_updated: "2026-09-15" },
+    { id: "PHC-030", name: "Perisandra PHC", taluk: "Gudibande", x: 220, y: 170, health: "at_risk", flagged_medicines: 4, last_updated: "2026-09-12" }
+  ];
+
+  let orders = [
+    { id: "ORD-1041", phc_id: "PHC-014", phc_name: "Gudibande PHC", drug_code: "NLEM-A03", medicine_name: "Amoxicillin 500mg", quantity: 200, unit: "tablets", vendor_name: "Southern Pharma Distributors", status: "requisition_sent", urgent: true, requisition_date: "2026-09-13" },
+    { id: "ORD-1042", phc_id: "PHC-021", phc_name: "Chintamani PHC", drug_code: "NLEM-B11", medicine_name: "ORS Sachets", quantity: 500, unit: "packets", vendor_name: "Karnataka Medical Supplies Co.", status: "requisition_sent", urgent: false, requisition_date: "2026-09-14" },
+    { id: "ORD-1030", phc_id: "PHC-009", phc_name: "Bagepalli PHC", drug_code: "NLEM-C07", medicine_name: "Paracetamol 500mg", quantity: 1000, unit: "tablets", vendor_name: "Southern Pharma Distributors", status: "vendor_confirmed", urgent: false, requisition_date: "2026-09-09" },
+    { id: "ORD-1031", phc_id: "PHC-003", phc_name: "Sidlaghatta PHC", drug_code: "NLEM-D15", medicine_name: "Iron Folic Acid Tablets", quantity: 300, unit: "tablets", vendor_name: "Vijaya Drug House", status: "vendor_confirmed", urgent: true, requisition_date: "2026-09-08" },
+    { id: "ORD-1018", phc_id: "PHC-007", phc_name: "Chikkaballapur Rural PHC", drug_code: "NLEM-A03", medicine_name: "Amoxicillin 500mg", quantity: 150, unit: "tablets", vendor_name: "Karnataka Medical Supplies Co.", status: "in_transit", urgent: false, requisition_date: "2026-09-05" },
+    { id: "ORD-1019", phc_id: "PHC-012", phc_name: "Gauribidanur PHC", drug_code: "NLEM-E22", medicine_name: "Oral Rehydration Salts", quantity: 400, unit: "packets", vendor_name: "Vijaya Drug House", status: "in_transit", urgent: false, requisition_date: "2026-09-06" },
+    { id: "ORD-1005", phc_id: "PHC-002", phc_name: "Manchenahalli PHC", drug_code: "NLEM-F09", medicine_name: "Cotrimoxazole Suspension", quantity: 100, unit: "bottles", vendor_name: "Karnataka Medical Supplies Co.", status: "delivered", urgent: false, requisition_date: "2026-08-30" }
+  ];
+
+  let selectedPhcId = null;
+
+  async function loadLiveDashboardData() {
+    try {
+      const [networkResponse, ordersResponse, vendorsResponse] = await Promise.all([
+        fetch(`${API_BASE}/analytics/network-map`),
+        fetch(`${API_BASE}/orders?limit=500`),
+        fetch(`${API_BASE}/vendors?limit=500`)
+      ]);
+      if (!networkResponse.ok || !ordersResponse.ok || !vendorsResponse.ok) return;
+
+      const network = await networkResponse.json();
+      const apiOrders = await ordersResponse.json();
+      const vendors = await vendorsResponse.json();
+      if (!network.length) return;
+
+      const latitudes = network.map(item => item.latitude);
+      const longitudes = network.map(item => item.longitude);
+      const minLat = Math.min(...latitudes), maxLat = Math.max(...latitudes);
+      const minLon = Math.min(...longitudes), maxLon = Math.max(...longitudes);
+      const scale = (value, min, max, low, high) => max === min
+        ? (low + high) / 2
+        : low + ((value - min) / (max - min)) * (high - low);
+
+      phcs = network.map(item => ({
+        id: item.id,
+        code: item.phc_code,
+        name: item.name,
+        taluk: item.district,
+        x: scale(item.longitude, minLon, maxLon, 120, 480),
+        y: scale(item.latitude, minLat, maxLat, 340, 70),
+        health: item.health === "critical" ? "at_risk" : item.health,
+        flagged_medicines: item.at_risk_items,
+        last_updated: new Date().toISOString().slice(0, 10)
+      }));
+
+      const phcById = new Map(phcs.map(item => [item.id, item]));
+      const vendorById = new Map(vendors.map(item => [item.id, item]));
+      orders = apiOrders.map(item => {
+        const phc = phcById.get(item.phc_id);
+        const vendor = vendorById.get(item.vendor_id);
+        return {
+          id: `ORD-${item.id}`,
+          phc_id: item.phc_id,
+          phc_name: phc ? phc.name : `PHC ${item.phc_id}`,
+          drug_code: item.nlem_code,
+          medicine_name: item.drug_name,
+          quantity: item.quantity_ordered,
+          unit: "units",
+          vendor_name: vendor ? vendor.name : "District supply network",
+          status: item.status === "draft" ? "requisition_sent" : item.status,
+          urgent: item.status === "requisition_sent",
+          requisition_date: item.created_at || new Date().toISOString()
+        };
+      });
+
+      renderGlobalStats();
+      renderMapMarkers();
+      populatePhcFilter();
+      renderPipelineBoard();
+      renderTransferModule();
+    } catch (error) {
+      console.warn("Live dashboard data unavailable; showing demo data.", error);
+    }
+  }
+
+  function initCustomCursor() {
+    const dot = document.getElementById("cursor-dot");
+    const ring = document.getElementById("cursor-ring");
+    let rx = 0, ry = 0, dx = 0, dy = 0;
+
+    window.addEventListener("mousemove", e => {
+      dx = e.clientX;
+      dy = e.clientY;
+      dot.style.transform = `translate(${dx}px, ${dy}px) translate(-50%, -50%)`;
+    });
+
+    function renderCursorRing() {
+      rx += (dx - rx) * 0.18;
+      ry += (dy - ry) * 0.18;
+      ring.style.transform = `translate(${rx}px, ${ry}px) translate(-50%, -50%)`;
+      requestAnimationFrame(renderCursorRing);
+    }
+    requestAnimationFrame(renderCursorRing);
+
+    document.addEventListener("mouseover", e => {
+      if (e.target.closest("button, input, select, .map-marker-node, .kanban-card")) {
+        ring.classList.add("hovering");
+      }
+    });
+
+    document.addEventListener("mouseout", e => {
+      if (e.target.closest("button, input, select, .map-marker-node, .kanban-card")) {
+        ring.classList.remove("hovering");
+      }
+    });
+  }
+
+  function daysBetween(dateStr) {
+    return Math.max(0, Math.round((Date.now() - new Date(dateStr).getTime()) / 86400000));
+  }
+
+  function findPhc(id) { return phcs.find(p => p.id === id); }
+
+  function switchView(target) {
+    document.querySelectorAll(".rail-btn").forEach(b => b.classList.remove("active"));
+    document.querySelectorAll(".view-panel").forEach(p => p.classList.remove("active"));
+    
+    document.getElementById("nav-" + target).classList.add("active");
+    document.getElementById("view-" + target).classList.add("active");
+
+    if (target === "pipeline") renderPipelineBoard();
+    if (target === "transfers") renderTransferModule();
+  }
+
+  function renderGlobalStats() {
+    const totalPhcs = phcs.length;
+    const riskPhcs = phcs.filter(p => p.health === "at_risk").length;
+    const activeOrders = orders.filter(o => o.status !== "delivered").length;
+    const urgentOrders = orders.filter(o => o.urgent && o.status !== "delivered").length;
+
+    document.getElementById("global-stats").innerHTML = `
+      <div class="stat-box"><div class="val">${totalPhcs}</div><div class="lbl">PHCs Tracked</div></div>
+      <div class="stat-box risk"><div class="val">${riskPhcs}</div><div class="lbl">PHCs At Risk</div></div>
+      <div class="stat-box"><div class="val">${activeOrders}</div><div class="lbl">Active Orders</div></div>
+      <div class="stat-box risk"><div class="val">${urgentOrders}</div><div class="lbl">Urgent Orders</div></div>
+    `;
+
+    document.getElementById("transfer-badge").classList.toggle("visible", riskPhcs > 0);
+  }
+
+  function renderMapMarkers() {
+    const group = document.getElementById("map-markers-layer");
+    group.innerHTML = "";
+
+    phcs.forEach(phc => {
+      const meta = HEALTH_META[phc.health];
+      const g = document.createElementNS(SVG_NS, "g");
+      g.setAttribute("class", "map-marker-node");
+
+      if (phc.health === "at_risk") {
+        const pulse = document.createElementNS(SVG_NS, "circle");
+        pulse.setAttribute("cx", phc.x);
+        pulse.setAttribute("cy", phc.y);
+        pulse.setAttribute("r", "10");
+        pulse.setAttribute("fill", meta.color);
+        pulse.setAttribute("class", "pulse-ring");
+        g.appendChild(pulse);
+      }
+
+      const circle = document.createElementNS(SVG_NS, "circle");
+      circle.setAttribute("cx", phc.x);
+      circle.setAttribute("cy", phc.y);
+      circle.setAttribute("r", "8");
+      circle.setAttribute("fill", meta.color);
+      circle.setAttribute("class", "map-marker");
+      g.appendChild(circle);
+
+      g.addEventListener("click", () => showPhcDetail(phc.id));
+      group.appendChild(g);
+    });
+  }
+
+  function showPhcDetail(id) {
+    selectedPhcId = id;
+    const phc = findPhc(id);
+    if (!phc) return;
+
+    const meta = HEALTH_META[phc.health];
+    document.getElementById("detail-name").textContent = phc.name;
+    document.getElementById("detail-sub").textContent = `${phc.taluk} taluk · Updated ${phc.last_updated}`;
+    
+    const badge = document.getElementById("detail-badge");
+    badge.textContent = meta.label;
+    badge.style.color = meta.color;
+    badge.style.background = meta.bg;
+
+    document.getElementById("detail-flagged").textContent = `${phc.flagged_medicines} medicines below reorder threshold.`;
+    document.getElementById("phc-detail-card").classList.add("active");
+  }
+
+  function populatePhcFilter() {
+    const select = document.getElementById("pipeline-phc-filter");
+    select.innerHTML = '<option value="">All PHCs</option>' + 
+      phcs.map(p => `<option value="${p.id}">${p.name}</option>`).join("");
+
+    const transferSelect = document.getElementById("transfer-target-phc");
+    transferSelect.innerHTML = '<option value="">Select Recipient PHC (In Need)</option>' + 
+      phcs.map(p => `<option value="${p.id}">${p.name} (${HEALTH_META[p.health].label})</option>`).join("");
+  }
+
+  function renderPipelineBoard() {
+    const board = document.getElementById("kanban-board");
+    const searchQuery = document.getElementById("pipeline-search").value.toLowerCase();
+    const phcFilter = document.getElementById("pipeline-phc-filter").value;
+    const urgencyFilter = document.getElementById("pipeline-urgency-filter").value;
+
+    const filtered = orders.filter(o => {
+      const matchSearch = o.phc_name.toLowerCase().includes(searchQuery) ||
+                          o.medicine_name.toLowerCase().includes(searchQuery) ||
+                          o.id.toLowerCase().includes(searchQuery);
+      const matchPhc = !phcFilter || o.phc_id === phcFilter;
+      const matchUrgency = !urgencyFilter || (urgencyFilter === "urgent" && o.urgent);
+      return matchSearch && matchPhc && matchUrgency;
+    });
+
+    board.innerHTML = STAGES.map(stage => {
+      const stageOrders = filtered.filter(o => o.status === stage);
+      const meta = STAGE_META[stage];
+
+      return `
+        <div class="kanban-col" style="--col-color: ${meta.color}">
+          <div class="kanban-col-head">
+            <h3>${meta.label}</h3>
+            <span class="kanban-count">${stageOrders.length}</span>
+          </div>
+          <ul class="kanban-card-list">
+            ${stageOrders.map(o => `
+              <li class="kanban-card" style="--col-color: ${STAGE_META[o.status].color}">
+                <div class="kanban-card-top">
+                  <div>
+                    <div class="kanban-phc">${o.phc_name}</div>
+                    <div class="kanban-meta mono">${o.id} · ${o.drug_code}</div>
+                  </div>
+                  ${o.urgent ? '<div class="urgent-badge"></div>' : ''}
+                </div>
+                <div class="kanban-card-body">
+                  <div class="kanban-med">${o.medicine_name} (${o.quantity} ${o.unit})</div>
+                  <div class="kanban-vendor">${o.vendor_name}</div>
+                </div>
+                <div class="kanban-card-foot">
+                  <span class="kanban-days">${daysBetween(o.requisition_date)}d in pipeline</span>
+                </div>
+              </li>
+            `).join("")}
+          </ul>
+        </div>
+      `;
+    }).join("");
+  }
+
+  function renderTransferModule() {
+    const transferSelect = document.getElementById("transfer-target-phc");
+    
+    if (selectedPhcId) {
+      transferSelect.value = selectedPhcId;
+    }
+
+    const targetId = transferSelect.value;
+    const linesGroup = document.getElementById("tmap-lines-layer");
+    const markersGroup = document.getElementById("tmap-markers-layer");
+    const listContainer = document.getElementById("transfer-candidates-list");
+
+    linesGroup.innerHTML = "";
+    markersGroup.innerHTML = "";
+
+    phcs.forEach(phc => {
+      const meta = HEALTH_META[phc.health];
+      const circle = document.createElementNS(SVG_NS, "circle");
+      circle.setAttribute("cx", phc.x);
+      circle.setAttribute("cy", phc.y);
+      circle.setAttribute("r", phc.id === targetId ? "10" : "6");
+      circle.setAttribute("fill", meta.color);
+      circle.setAttribute("stroke", phc.id === targetId ? "#000" : "#fff");
+      circle.setAttribute("stroke-width", "2");
+      markersGroup.appendChild(circle);
+    });
+
+    if (!targetId) {
+      listContainer.innerHTML = `<p style="color: var(--ink-secondary); font-size: 12px;">Select a recipient PHC above or from the main map to view optimal nearby donor routes.</p>`;
+      return;
+    }
+
+    const targetPhc = findPhc(targetId);
+    const healthyDonors = phcs.filter(p => p.health === "healthy" && p.id !== targetId);
+
+    if (healthyDonors.length === 0) {
+      listContainer.innerHTML = `<p style="color: var(--ink-secondary); font-size: 12px;">No healthy PHCs with surplus stock available for transfer.</p>`;
+      return;
+    }
+
+    listContainer.innerHTML = healthyDonors.map(donor => {
+      const dist = Math.round(Math.hypot(donor.x - targetPhc.x, donor.y - targetPhc.y) * 0.15);
+
+      const line = document.createElementNS(SVG_NS, "line");
+      line.setAttribute("x1", donor.x);
+      line.setAttribute("y1", donor.y);
+      line.setAttribute("x2", targetPhc.x);
+      line.setAttribute("y2", targetPhc.y);
+      line.setAttribute("class", "transfer-line");
+      linesGroup.appendChild(line);
+
+      return `
+        <div class="transfer-card-item">
+          <div class="transfer-card-header">
+            <span>${donor.name}</span>
+            <span class="mono" style="font-size:11px; color:var(--accent);">${dist} km away</span>
+          </div>
+          <div class="transfer-card-details">
+            Surplus stock available for fast dispatch to <strong>${targetPhc.name}</strong>.
+          </div>
+          <button type="button" class="btn btn-primary" style="padding: 6px 10px; font-size: 11px;" onclick="alert('Stock dispatch request initiated from ${donor.name} to ${targetPhc.name}. Notification sent to District Logistic Officer.')">
+            Dispatch Stock
+          </button>
+        </div>
+      `;
+    }).join("");
+  }
+
+  document.addEventListener("DOMContentLoaded", () => {
+    initCustomCursor();
+    document.getElementById("nav-map").addEventListener("click", () => switchView("map"));
+    document.getElementById("nav-pipeline").addEventListener("click", () => switchView("pipeline"));
+    document.getElementById("nav-transfers").addEventListener("click", () => switchView("transfers"));
+    
+    document.getElementById("btn-view-phc-orders").addEventListener("click", () => {
+      if (selectedPhcId) {
+        document.getElementById("pipeline-phc-filter").value = selectedPhcId;
+      }
+      switchView("pipeline");
+    });
+    
+    document.getElementById("btn-suggest-transfer").addEventListener("click", () => switchView("transfers"));
+
+    document.getElementById("transfer-target-phc").addEventListener("change", (e) => {
+      selectedPhcId = e.target.value;
+      renderTransferModule();
+    });
+
+    renderGlobalStats();
+    renderMapMarkers();
+    populatePhcFilter();
+    loadLiveDashboardData();
+  });
+
+})();
+</script>
+</body>
+</html>

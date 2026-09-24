@@ -1,0 +1,18 @@
+Backend Developer 1 (System Architecture & Core Logic) — Done by Shreyas
+Database Design: Set up PostgreSQL/SQLite database models for PHCs, Inventory, Vendors, and Orders.
+Business Logic: Write the dynamic reorder math and inter-PHC distance calculation functions.
+Data Seeding: Write a Python script to populate the database with synthetic data (50+ Indian PHCs, NLEM medicine codes).
+API Gateway: Build the main Flask/FastAPI REST routes to connect with the frontend.
+Backend Developer 2 (Google GenAI & Communications)- Done by Me
+Gemini Vision Integration: Build the API handler using the google-genai SDK to extract structured JSON from invoice images.
+Gemini Audio Integration: Build the audio processing handler to extract intent and quantities from spoken voice notes.
+Multilingual SMS Engine: Implement Gemini Flash prompts to translate database requisitions into regional language strings and send them via Twilio or Fast2SMS.
+Frontend Workstreams
+Frontend Developer 1 (PHC Mobile App / PWA)- Done by Bhavana
+Worker Interface: Build a lightweight, responsive web app tailored for PHC staff on mobile devices.
+Camera & Audio UI: Create the photo-capture interface for invoices and the microphone hold-to-talk button for voice logs.
+Local Inventory View: Build simple tables showing stock levels, batch numbers, and expiry alerts.
+Frontend Developer 2 (District Admin & Network Dashboard) - Done by Darren
+Supply Chain Pipeline: Build a Kanban-style pipeline tracking order statuses (Requisition Sent → Vendor Confirmed → In Transit → Delivered).
+Interactive Network Map: Build a Leaflet.js map displaying PHC locations across a district, color-coded by stock health (Green = Healthy, Red = At Risk).
+Inter-PHC Transfer UI: Create the modal interface showing recommended peer-to-peer stock transfers between nearby PHCs..
