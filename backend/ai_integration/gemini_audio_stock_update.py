@@ -173,7 +173,7 @@ def extract_stock_updates(
     last_error: Optional[Exception] = None
 
     for attempt in range(1, MAX_RETRIES + 2):
-                try:
+        try:
             client = _get_client()
             for model_name in MODEL_NAMES:
                 try:
