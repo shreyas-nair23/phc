@@ -62,7 +62,7 @@ logger = logging.getLogger("gemini_audio_stock_update")
 # Config — deliberately identical pattern to gemini_vision_ocr.py
 # ---------------------------------------------------------------------------
 
-MODEL_NAME = "gemini-2.5-flash"
+MODEL_NAMES = ["gemini-3.8-flash", "gemini-3.6-flash", "gemini-2.5-flash"]
 MAX_RETRIES = 2
 RETRY_BACKOFF_SECONDS = 1.5
 
@@ -173,28 +173,42 @@ def extract_stock_updates(
     last_error: Optional[Exception] = None
 
     for attempt in range(1, MAX_RETRIES + 2):
-        try:
+                try:
             client = _get_client()
-            response = client.models.generate_content(
-                model=MODEL_NAME,
-                contents=[
-                    types.Content(
-                        role="user",
-                        parts=[
-                            types.Part.from_bytes(data=audio_bytes, mime_type=mime_type),
-                            types.Part.from_text(
-                                text="Transcribe this recording and extract any medicine stock movements mentioned."
-                            ),
+            for model_name in MODEL_NAMES:
+                try:
+                    response = client.models.generate_content(
+                        model=model_name,
+                        contents=[
+                            types.Content(
+                                role="user",
+                                parts=[
+                                    types.Part.from_bytes(data=audio_bytes, mime_type=mime_type),
+                                    types.Part.from_text(
+                                        text="Transcribe this recording and extract any medicine stock movements mentioned."
+                                    ),
+                                ],
+                            )
                         ],
+                        config=types.GenerateContentConfig(
+                            system_instruction=_SYSTEM_INSTRUCTION,
+                            response_mime_type="application/json",
+                            response_schema=AudioStockExtraction,
+                            temperature=0.1,  # low temperature: faithful understanding, not creativity
+                        ),
                     )
-                ],
-                config=types.GenerateContentConfig(
-                    system_instruction=_SYSTEM_INSTRUCTION,
-                    response_mime_type="application/json",
-                    response_schema=AudioStockExtraction,
-                    temperature=0.1,  # low temperature: faithful understanding, not creativity
-                ),
-            )
+                    break
+                except Exception as e:
+                    last_error = e
+                    logger.warning(
+                        "Gemini model %s failed on attempt %d (%s). Trying next model...",
+                        model_name, attempt, e,
+                    )
+            else:
+                logger.warning("All Gemini fallback models failed on attempt %d. Retrying...", attempt)
+                if attempt <= MAX_RETRIES:
+                    time.sleep(RETRY_BACKOFF_SECONDS * attempt)
+                continue
 
             raw_text = response.text
             data = json.loads(raw_text)
